@@ -32,6 +32,8 @@
         "loglevel": "info",
         "type": "hardware"
     },
-    "native": {},
+    "native": {
+		"repPort": "3344"
+		},
     "objects": []
 }

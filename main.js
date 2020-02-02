@@ -55,7 +55,19 @@ adapter.on('ready', function ()
 //*****************
 adapter.on('unload', function ()
 {
+
+    // Alle Zeitgesteuerten Aufrufe löschen
+    clearInterval(refreshServer);
+    clearInterval(refreshPrinterActive);
+    clearInterval(refreshState);
+    clearInterval(refreshPrintJob);
+    clearInterval(serverUpdate);
+
     adapter.setState('info.connection', false, false);
+
+    adapter.log.info('Repetier-Server Verbindungsaufbau gestoppt');
+    adapter.log.info('Repetier-Server Service gestoppt');
+
 });
 
 
@@ -79,15 +91,15 @@ function main()
 
     // IP-Adresse prüfen
     if(repetierIP == ''){
-        adapter.log.debug('Repetier IP: ' + repetierIP);
-        adapter.log.debug('Keine IP angegeben!');
+        adapter.log.info('Repetier IP: ' + repetierIP);
+        adapter.log.info('Keine IP angegeben!');
         adapter.setState('info.connection', false, false);
     }
 
     // ApiKey prüfen
     if(repetierApi == ''){
-        adapter.log.debug('Repetier ApiKey: ' + repetierApi);
-        adapter.log.debug('Keine ApiKey angegeben!');
+        adapter.log.info('Repetier ApiKey: ' + repetierApi);
+        adapter.log.info('Keine ApiKey angegeben!');
         adapter.setState('info.connection', false, false);
     }
 
@@ -102,8 +114,8 @@ function main()
     serverpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.Server.';
 
     // Adapterwerte ausgeben
-    adapter.log.debug('Repetier IP: ' + repetierIP);
-    adapter.log.debug('Repetier Port: ' + repetierPort);
+    adapter.log.info('Repetier IP: ' + repetierIP);
+    adapter.log.info('Repetier Port: ' + repetierPort);
 
     // Adapterwert 'info.connection' übergeben
     adapter.setState('info.connection', false, true);
