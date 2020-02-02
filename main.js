@@ -47,7 +47,11 @@ let serverpath ;
 //******************
 adapter.on('ready', function ()
 {
-    main();
+
+    // Adapterwert 'info.connection' übergeben
+    adapter.setState('info.connection', false, true);
+
+	main();
 });
 
 // ****************
@@ -117,9 +121,6 @@ function main()
     adapter.log.info('Repetier IP: ' + repetierIP);
     adapter.log.info('Repetier Port: ' + repetierPort);
 
-    // Adapterwert 'info.connection' übergeben
-    adapter.setState('info.connection', false, true);
-
 
     // ***************
     // Initialisierung
@@ -147,14 +148,14 @@ function main()
     // Aufruf RefreshServer (alle 5 Min.)
     setInterval(refreshServer, 300000);
     
-    // Refresh Printer aktiv (alle 1,5 Sek.)
-    setInterval(refreshPrinterActive, 1500);
+    // Refresh Printer aktiv (alle 5 Sek.)
+    setInterval(refreshPrinterActive, 5000);
 
-    // Refresh PrinterState (alle 1,5 Sek.)
-    setInterval(refreshState, 1500);
+    // Refresh PrinterState (alle 2 Sek.)
+    setInterval(refreshState, 2000);
 
-    // Refresh PrintJob (alle 1,5 Sek.)
-    setInterval(refreshPrintJob, 1500);
+    // Refresh PrintJob (alle 2 Sek.)
+    setInterval(refreshPrintJob, 2000);
 
     // Refresh ServerUpdate (1x am Tag)
     setInterval(serverUpdate, 86400000);
@@ -415,11 +416,13 @@ function refreshServer()
                 printerwert = repetierIP;
                 printerdatenpfad = serverpath + 'Server_IP';
                 DatenAusgabe(printerdatenpfad, 'state', 'IP-Adresse des Servers', 'string', true, false, '', 'info', printerwert);
-                // Port --> Server
+                
+				// Port --> Server
                 printerwert = repetierPort;
                 printerdatenpfad = serverpath + 'Server_Port';
                 DatenAusgabe(printerdatenpfad, 'state', 'Port-Nummer des Servers', 'string', true, false, '', 'info', printerwert);
-                // ApiKey --> Server
+                
+				// ApiKey --> Server
                 printerwert = repetierApi;
                 printerdatenpfad = serverpath + 'Server_ApiKey';
                 DatenAusgabe(printerdatenpfad, 'state', 'ApiKey des Servers', 'string', true, false, '', 'info', printerwert);
@@ -799,7 +802,7 @@ function refreshPrintJob()
                                 else{
                                     printerwert = false;
                                 }
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Druck_druckt';
+                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Drucker_druckt';
                                 DatenAusgabe(printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status', printerwert);
     
                             }
@@ -846,8 +849,8 @@ function refreshPrintJob()
                                 // Fortschritt
                                 printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckfortschritt';
                                 DatenAusgabe(printerdatenpfad, 'state', 'Druckfortschritt in %', 'string', true, false, '%', 'info.status', '---');
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druck_läuft';
-                                DatenAusgabe(printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, 'info.status', false);
+                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Drucker_druckt';
+                                DatenAusgabe(printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status', false);
 
                             }                                
                         }
