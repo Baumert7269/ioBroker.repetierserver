@@ -1,5 +1,5 @@
 {
-    "name": "ioBroker.repetierserver",
+    "name": "iobroker.repetierserver",
     "version": "1.0.0",
     "description": "ioBroker repetierserver Adapter",
     "author": {
