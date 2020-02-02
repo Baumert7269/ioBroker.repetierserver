@@ -1,6 +1,6 @@
 {
     "common": {
-        "name": "RepetierServer",
+        "name": "repetierserver",
         "version": "1.0.0",
         "news": {
             "1.0.0": {
@@ -8,7 +8,7 @@
                 "de": "Init ioBroker Adapter für RepetierServer"
                    }
         },
-        "title": "RepetierServer",
+        "title": "RepetierServer2",
         "titleLang": {
             "en": "RepetierServer",
             "de": "RepetierServer"
