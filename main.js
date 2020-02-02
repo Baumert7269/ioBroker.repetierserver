@@ -154,8 +154,8 @@ function main()
     // Refresh PrinterState (alle 2 Sek.)
     setInterval(refreshState, 2000);
 
-    // Refresh PrintJob (alle 2 Sek.)
-    setInterval(refreshPrintJob, 2000);
+    // Refresh PrintJob (alle 5 Sek.)
+    setInterval(refreshPrintJob, 5000);
 
     // Refresh ServerUpdate (1x am Tag)
     setInterval(serverUpdate, 86400000);
