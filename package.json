@@ -9,19 +9,26 @@
     "homepage": "https://github.com/Baumert7269/ioBroker.repetierserver",
     "license": "MIT",
     "keywords": [
-        "ioBroker",
+        "iobroker",
         "repetierserver",
-        "Smart Home",
-        "3d Druck"
+        "smart home",
+        "3d druck",
+		"3d printing"
     ],
     "repository": {
         "type": "git",
         "url": "https://github.com/Baumert7269/ioBroker.repetierserver"
     },
     "dependencies": {},
-    "devDependencies": {},
+    "devDependencies": {
+		"gulp": "^4.0.2",
+		"mocha": "^6.2.1",
+		"chai": "^4.2.0"
+	},
     "main": "main.js",
-    "scripts": {},
+    "scripts": {
+		"test": "node node_modules/mocha/bin/mocha --exit"
+	},
     "bugs": {
         "url": "https://github.com/Baumert7269/ioBroker.repetierserver/issues"
     },
