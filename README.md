@@ -1,6 +1,5 @@
 ![Logo](admin/repetier.png)
 # ioBroker.repetierserver
-=========================
 
 ioBroker Adapter für Repetier-Server (3D-Drucker). Er soll die Einbindung und Steuerung eines 3D-Druckers, der über Repetier-Server läuft, in die Homeautomatisierung ermöglichen. 
 
@@ -35,7 +34,6 @@ Einige Datenpunkte werden erst erstellt, wenn der 3D-Drucker aktiviert wurde bzw
 **************************************
 
 # ioBroker.repetierserver
-=========================
 
 ioBroker adapter for Repetier-Server (3D printer). It is intended to enable the integration and control of a 3D printer that runs via Repetier-Server in the home automation. 
 
