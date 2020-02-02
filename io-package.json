@@ -1,6 +1,6 @@
 {
     "common": {
-        "name": "repetierserver",
+        "name": "RepetierServer",
         "version": "1.0.0",
         "news": {
             "1.0.0": {
@@ -8,14 +8,14 @@
                 "de": "Init ioBroker Adapter für RepetierServer"
                    }
         },
-        "title": "repetierserver",
+        "title": "RepetierServer",
         "titleLang": {
-            "en": "repetierserver",
-            "de": "repetierserver"
+            "en": "RepetierServer",
+            "de": "RepetierServer"
         },
         "desc": {
-            "en": "repetierserver",
-            "de": "repetierserver"
+            "en": "RepetierServer",
+            "de": "RepetierServer"
         },
         "authors": [
             "Baumert7269 <thomas.baumert@live.de>"
