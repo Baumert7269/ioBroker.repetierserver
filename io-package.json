@@ -1,0 +1,37 @@
+{
+    "common": {
+        "name": "repetierserver",
+        "version": "1.0.0",
+        "news": {
+            "1.0.0": {
+                "en": "Init ioBroker Adapter for RepetierServer",
+                "de": "Init ioBroker Adapter für RepetierServer"
+                   }
+        },
+        "title": "repetierserver",
+        "titleLang": {
+            "en": "repetierserver",
+            "de": "repetierserver"
+        },
+        "desc": {
+            "en": "repetierserver",
+            "de": "repetierserver"
+        },
+        "authors": [
+            "Baumert7269 <thomas.baumert@live.de>"
+        ],
+        "platform": "Javascript/Node.js",
+        "mode": "daemon",
+        "icon": "repetier.png",
+        "materialize": true,
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/Baumert7269/ioBroker.repetierserver/master/admin/repetier.png",
+        "keywords": ["repetier", "3d druck"],
+        "license": "MIT",
+        "readme": "https://github.com/Baumert7269/ioBroker.repetierserver/blob/master/README.md",
+        "loglevel": "info",
+        "type": "hardware"
+    },
+    "native": {},
+    "objects": []
+}

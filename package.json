@@ -1,0 +1,29 @@
+{
+    "name": "iobroker.repetierserver",
+    "version": "1.0.0",
+    "description": "ioBroker repetierserver Adapter",
+    "author": {
+        "name": "Thomas Baumert",
+        "email": "thomas.baumert@live.de"
+    },
+    "homepage": "https://github.com/Baumert7269/ioBroker.repetierserver",
+    "license": "MIT",
+    "keywords": [
+        "ioBroker",
+        "repetierserver",
+        "Smart Home",
+        "3d Druck"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Baumert7269/ioBroker.repetierserver"
+    },
+    "dependencies": {},
+    "devDependencies": {},
+    "main": "main.js",
+    "scripts": {},
+    "bugs": {
+        "url": "https://github.com/Baumert7269/ioBroker.repetierserver/issues"
+    },
+    "readmeFilename": "README.md"
+}
