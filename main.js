@@ -50,6 +50,9 @@ adapter.on('ready', function ()
 
     // Adapterwert 'info.connection' übergeben
     adapter.setState('info.connection', false, true);
+    
+	// Meldung ausgeben
+	adapter.log.info('RepetierServer verbunden');
 
 	main();
 });
