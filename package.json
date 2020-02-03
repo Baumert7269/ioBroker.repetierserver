@@ -21,13 +21,12 @@
     },
     "dependencies": {},
     "devDependencies": {
-		"gulp": "^4.0.2",
-		"mocha": "^6.2.1",
-		"chai": "^4.2.0"
+		"mocha": "^2.3.4",
+		"chai": "^3.4.1"
 	},
     "main": "main.js",
     "scripts": {
-		"test": "node node_modules/mocha/bin/mocha --exit"
+		 "test": "node node_modules/mocha/bin/mocha"
 	},
     "bugs": {
         "url": "https://github.com/Baumert7269/ioBroker.repetierserver/issues"
