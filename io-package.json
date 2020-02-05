@@ -32,7 +32,7 @@
         "loglevel": "debug",
 		"messagebox": true,
 		"compact": true,
-		"type": "hardware"
+		"type": "hardware",
 		"dependencies": [
             {
                 "admin": ">=3.0.0"
