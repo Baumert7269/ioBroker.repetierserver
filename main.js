@@ -15,22 +15,22 @@ const adapter = new utils.Adapter('repetierserver');
 const rGcodeUnbekannt = 'unbekannter G-Code' ;
 
 // Adapterparameter
-let repetierIP ;
-let repetierPort ;
-let repetierApi ;
+let repetierIP = '' ;
+let repetierPort = '' ;
+let repetierApi = '' ;
 
 // Datenübergabevariablen
 let printerwert ;
-let printerdatenpfad ;
+let printerdatenpfad = '' ;
 
 // Allgemeine Hilfsvariablen
-let i ;
+let i = 0 ;
 
 // Hilfsvariablen für Zeitrechnungen
-let tStd ; 
-let tMin ;
-let tRStd ;
-let tRMin ;
+let tStd = '' ; 
+let tMin = '' ;
+let tRStd = '';
+let tRMin = '';
 
 // interne Druckerübersicht
 const aprinter = new Array;
@@ -38,8 +38,8 @@ let printercnt ;
 let printername = '' ;
 
 // Hauptpfade
-let printerpath ;
-let serverpath ;
+let printerpath = '' ;
+let serverpath = '' ;
 
 
 // *****************
