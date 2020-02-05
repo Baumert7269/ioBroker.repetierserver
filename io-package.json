@@ -45,7 +45,7 @@
     "native": {
 		"repPort": "3344",
 		"repIP": "0.0.0.0",
-		"repApi": "xxxxx"
+		"repApiKey": "xxxxx"
 		},
 	"objects": [],
     "instanceObjects": [
