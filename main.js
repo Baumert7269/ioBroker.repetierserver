@@ -77,6 +77,8 @@ adapter.on('unload', function ()
     adapter.log.info('Repetier-Server Verbindungsaufbau gestoppt');
     adapter.log.info('Repetier-Server Service gestoppt');
 
+	callback();
+	
 });
 
 
