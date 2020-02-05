@@ -23,7 +23,7 @@ Folgende Funktionen stehen zur Verfügung:
   - Zeitinformationen
 
 Einige Datenpunkte werden erst erstellt, wenn der 3D-Drucker aktiviert wurde bzw. der erste Druckauftrag gestartet wurde. 
-
+Es werden nur Werte vom Drucker empfangen, wenn dieser 'aktiviert' ist!
 
 ## Konfiguration:
 
