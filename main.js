@@ -54,7 +54,9 @@ adapter.on('ready', function ()
 	// Meldung ausgeben
 	adapter.log.info('RepetierServer verbunden');
 
-	main();
+    // Hauptprogramm
+    main();
+    
 });
 
 // ****************
