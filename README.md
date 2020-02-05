@@ -5,7 +5,7 @@ ioBroker Adapter für Repetier-Server (3D-Drucker). Er soll die Einbindung und S
 
 Folgende Funktionen stehen zur Verfügung:
 
-- Allgegemeine Informationen zum Repetier-Server
+- Allgemeine Informationen zum Repetier-Server
 - Erkennen und Einlesen der angelegten 3D-Drucker
 - Aufbau der Kanäle und Datenpunkte entsprechend der Druckerkonfiguration 
 - Ausgabe der Werte
