@@ -62,7 +62,7 @@ adapter.on('ready', function ()
 // ****************
 // Adapter gestoppt
 //*****************
-adapter.on('unload', function ()
+adapter.on('unload', function (callback)
 {
 
     // Alle Zeitgesteuerten Aufrufe löschen
@@ -76,8 +76,6 @@ adapter.on('unload', function ()
 
     adapter.log.info('Repetier-Server Verbindungsaufbau gestoppt');
     adapter.log.info('Repetier-Server Service gestoppt');
-
-	callback();
 	
 });
 
