@@ -19,7 +19,9 @@
     "type": "git",
     "url": "https://github.com/Baumert7269/ioBroker.repetierserver"
   },
-  "dependencies": {},
+  "dependencies": {
+    "request": "^2.72.0"
+  },
   "devDependencies": {
     "mocha": "^2.3.4",
     "chai": "^3.4.1",
@@ -35,7 +37,7 @@
   },
   "main": "main.js",
   "scripts": {
-    "test": "node node_modules/mocha/bin/mocha"
+    "test": "node node_modules/mocha/bin/mocha --exit"
   },
   "bugs": {
     "url": "https://github.com/Baumert7269/ioBroker.repetierserver/issues"
