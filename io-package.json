@@ -29,13 +29,44 @@
         "keywords": ["repetier", "3d druck"],
         "license": "MIT",
         "readme": "https://github.com/Baumert7269/ioBroker.repetierserver/blob/master/README.md",
-        "loglevel": "info",
+        "loglevel": "debug",
 		"messagebox": true,
 		"compact": true,
 		"type": "hardware"
+		"dependencies": [
+            {
+                "admin": ">=3.0.0"
+            },
+            {
+                "js-controller": ">=1.4.2"
+		    }
+        ]
     },
     "native": {
 		"repPort": "3344"
 		},
-    "objects": []
+	"objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Device or service connected",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
 }
