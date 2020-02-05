@@ -80,7 +80,7 @@ adapter.on('unload', function (callback)
     adapter.log.info('Repetier-Server Verbindungsaufbau gestoppt');
     adapter.log.info('Repetier-Server Service gestoppt');
 	
-	if (repTimeout) clearTimeout(repTimeout);
+	//if (repTimeout) clearTimeout(repTimeout);
 });
 
 
@@ -169,7 +169,7 @@ function main()
     // Refresh ServerUpdate (1x am Tag)
     setInterval(serverUpdate, 86400000);
 	
-	repTimeout = setTimeout(main, 5000000);
+	//repTimeout = setTimeout(main, 5000000);
 	
 }
 
