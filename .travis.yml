@@ -2,7 +2,7 @@ os:
   - linux
   - osx
   - windows
-sudo: required
+sudo: true
 language: node_js
 node_js:
   - '8'
