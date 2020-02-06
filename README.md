@@ -70,7 +70,7 @@ Some data points are only created when the 3D printer has been activated or the 
 
 ## Changelog
 
-### 1.0.0
+### 0.0.1
 * (Baumert7269) initial release
 
 
