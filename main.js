@@ -18,8 +18,11 @@ const rGcodeUnbekannt = 'unbekannter G-Code' ;
 
 // Adapterparameter
 let repetierIP = '' ;
+let repIPOK = false ;
 let repetierPort = '' ;
+let repPortOK = false ;
 let repetierApi = '' ;
+let repApiKeyOK = false ;
 
 // Datenübergabevariablen
 let printerwert ;
@@ -51,6 +54,7 @@ let printername = '' ;
 let printerpath = '' ;
 let serverpath = '' ;
 
+// Adapter anlegen
 class Template extends utils.Adapter {
 
     /**
@@ -78,51 +82,59 @@ class Template extends utils.Adapter {
 	    // Meldung ausgeben
 	    this.log.info('RepetierServer verbunden');
 
-        // Hauptprogramm
-        main(this);
+        // *******************
+        // Adapterwerte prüfen
+        // *******************
+        // Adapterwerte übergeben
+        repetierIP = this.config.repIP;
+        repetierPort = this.config.repPort;
+        repetierApi = this.config.repApiKey;
 
-        /*
-        For every state in the system there has to be also an object of type state
-        Here a simple template for a boolean variable named "testVariable"
-        Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
-        */
+        // IP-Adresse prüfen
+        if(repetierIP == '' || repetierIP == '0.0.0.0'){
+            this.log.info('Repetier IP: ' + repetierIP);
+            this.log.info('Keine korrekte IP angegeben!');
+            this.setState('info.connection', false, false);
+            repIPOK = false;
+            this.terminate();
+        }
+        else {
+            repIPOK = true;
+            this.log.info('Repetier IP: ' + repetierIP);
+        }
 
-        /*
-        await this.setObjectAsync('testVariable', {
-            type: 'state',
-            common: {
-                name: 'testVariable',
-                type: 'boolean',
-                role: 'indicator',
-                read: true,
-                write: true,
-            },
-            native: {},
-        });
+        // ApiKey prüfen
+        if(repetierApi == ''){
+            this.log.info('Kein ApiKey angegeben!');
+            this.setState('info.connection', false, false);
+            repApiKeyOK = false;
+            this.terminate();
+        }
+        else {
+            repApiKeyOK = true;
+            this.log.info('Repetier ApiKey: ' + repetierApi);
+        }
 
-        // in this template all states changes inside the adapters namespace are subscribed
-        //this.subscribeStates('*');
-
-        /*
-        setState examples
-        you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
-        */
-        // the variable testVariable is set to true as command (ack=false)
-        //await this.setStateAsync('testVariable', true);
-
-        // same thing, but the value is flagged "ack"
-        // ack should be always set to true if the value is received from or acknowledged from the target system
-        //await this.setStateAsync('testVariable', { val: true, ack: true });
-
-        // same thing, but the state is deleted after 30s (getState will return null afterwards)
-        //await this.setStateAsync('testVariable', { val: true, ack: true, expire: 30 });
-
-        // examples for the checkPassword/checkGroup functions
-        //let result = await this.checkPasswordAsync('admin', 'iobroker');
-        //this.log.info('check user admin pw iobroker: ' + result);
-
-        //result = await this.checkGroupAsync('admin', 'admin');
-        //this.log.info('check group user admin group admin: ' + result);
+        // Port prüfen --> Defaultwert für Port übergeben, falls keine Angabe
+        if(repetierPort == ''){
+            repetierPort = '3344';
+            this.log.info('Repetier Defaultport 3344 wurde übernommen!');
+            repPortOK = true;
+        }
+        else {
+            repPortOK = true;
+            this.log.info('Repetier Port: ' + repetierPort);
+        }
+        
+        // Initisalsierung
+        if (repIPOK == true && repPortOK == true && repApiKeyOK == true){
+           
+            // Pfadangben vorbelegen
+            printerpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.' ;
+            serverpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.Server.';
+ 
+            main(this);
+        }
     }
 
     /**
@@ -163,121 +175,123 @@ class Template extends utils.Adapter {
         if (state) {
             // The state was changed
             // Printername ermitteln
-           const tmp = id.split('.');
+            const tmp = id.split('.');
+
+            // Printername vorhanden
             if (tmp.length > 3) {
-            if (tmp[3].search('rinter_') > 0 || tmp[3].search('pdate_Printer') > 0){  // --> Printer ohne 'P', damit search > 0 sein kann    
-                printername = tmp[3].replace('Printer_', '');
-    
-                // Welcher Steuerbefehl des Printers wurde geändert 
-                switch(true){
 
-                    // Druck Stopp
-                case (id.search('Steuern.Signale.Stopp')> 0 && state.val == true):
-                    request(
-                        {
-                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=stopJob&apikey=' + repetierApi,
-                        },    
-                    );
-                    this.setState(id, {val: false, ack: true});
-                    break;
+                // Printername auswerten
+                if (tmp[3].search('rinter_') > 0 || tmp[3].search('pdate_Printer') > 0){  // --> Printer ohne 'P', damit search > 0 sein kann    
+                    printername = tmp[3].replace('Printer_', '');
+        
+                    // Welcher Steuerbefehl des Printers wurde geändert 
+                    switch(true){
 
-                // Drucker NOT-STOP
-                case (id.search('Steuern.Signale.NOTSTOP')> 0 && state.val == true):
-                    request(
-                        {
-                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=emergencyStop&apikey=' + repetierApi,
-                        },    
-                    );
-                    this.setState(id, {val: false, ack: true});
-                    break;
-
-                    // Printer Aktivieren
-                case (id.search('Steuern.Signale.Aktivieren') > 0 && state.val == true):
-                    request(
-                        {
-                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=activate&data={"printer":"' + printername + '"}&apikey=' + repetierApi,
-                        },    
-                    );
-                    this.setState(id, {val: false, ack: true});
-                    break; 
-
-                // Printer Deaktivieren
-                case (id.search('Steuern.Signale.Deaktivieren')> 0 && state.val == true):
-                    request(
-                        {
-                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=deactivate&data={"printer":"' + printername + '"}&apikey=' + repetierApi,
-                        },    
-                    );
-                    this.setState(id, {val: false, ack: true});
-                    break;
-
-                // Druck Pause
-                case (id.search('Steuern.Signale.Pause')> 0 && state.val == true):
-                    request(
-                        {
-                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=send&data={"cmd":"@pause"}&apikey=' + repetierApi,
-                        },    
-                    );
-                    this.setState(id, {val: false, ack: true});
-                    break;
-                
-                // Druck fortsetzen
-                case (id.search('Steuern.Signale.Fortsetzen')> 0 && state.val == true):
-                    request(
-                        {
-                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=continueJob&apikey=' + repetierApi,
-                        },    
-                    );
-                    this.setState(id, {val: false, ack: true});
-                    break;
-
-                // Manueller G-Code-Befehl
-                case (id.search('Befehl.G_Code') > 0 && state.val != '' && state.val != rGcodeUnbekannt):
-                    // Befehl ist korrekt --> dann übergeben
-                    if (GCodeCheck(state.val) == true){
+                        // Druck Stopp
+                    case (id.search('Steuern.Signale.Stopp')> 0 && state.val == true):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=send&data={"cmd":"'+ state.val + '"}&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=stopJob&apikey=' + repetierApi,
                             },    
                         );
-                        this.setState(id, {val: '', ack: true});
-                    }
-                    else{   // Befehl nicht korrekt --> abbrechen und Rückmeldung
-                        this.setState(id, {val: '', ack: true});
-                    }
-                    break;
+                        this.setState(id, {val: false, ack: true});
+                        break;
 
-                // Materialfluss ändern (10% - 200%)
-                case (id.search('Steuern.Werte.Materialfluss') > 0 && (state.val >= 10) && (state.val <=200)):
-                    request(
-                        {
-                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=setFlowMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
-                        },    
-                    );
-                    break;
+                    // Drucker NOT-STOP
+                    case (id.search('Steuern.Signale.NOTSTOP')> 0 && state.val == true):
+                        request(
+                            {
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=emergencyStop&apikey=' + repetierApi,
+                            },    
+                        );
+                        this.setState(id, {val: false, ack: true});
+                        break;
 
-                // Druckgeschwindigkeit ändern (10% - 300%)
-                case (id.search('Steuern.Werte.Druckgeschwindigkeit') > 0 && (state.val >= 10) && (state.val <=300)):
-                    request(
-                        {
-                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=setSpeedMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
-                        },    
-                    );
-                    break;
+                        // Printer Aktivieren
+                    case (id.search('Steuern.Signale.Aktivieren') > 0 && state.val == true):
+                        request(
+                            {
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=activate&data={"printer":"' + printername + '"}&apikey=' + repetierApi,
+                            },    
+                        );
+                        this.setState(id, {val: false, ack: true});
+                        break; 
 
-                // update_Printer - neu Printer vorhanden
-                case (id.search('update.Printer')> 0 && state.val == true):
+                    // Printer Deaktivieren
+                    case (id.search('Steuern.Signale.Deaktivieren')> 0 && state.val == true):
+                        request(
+                            {
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=deactivate&data={"printer":"' + printername + '"}&apikey=' + repetierApi,
+                            },    
+                        );
+                        this.setState(id, {val: false, ack: true});
+                        break;
 
-                    printerUpdate(this);
-                    this.setState(id, {val: false, ack: true});
+                    // Druck Pause
+                    case (id.search('Steuern.Signale.Pause')> 0 && state.val == true):
+                        request(
+                            {
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=send&data={"cmd":"@pause"}&apikey=' + repetierApi,
+                            },    
+                        );
+                        this.setState(id, {val: false, ack: true});
+                        break;
+                    
+                    // Druck fortsetzen
+                    case (id.search('Steuern.Signale.Fortsetzen')> 0 && state.val == true):
+                        request(
+                            {
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=continueJob&apikey=' + repetierApi,
+                            },    
+                        );
+                        this.setState(id, {val: false, ack: true});
+                        break;
+
+                    // Manueller G-Code-Befehl
+                    case (id.search('Befehl.G_Code') > 0 && state.val != '' && state.val != rGcodeUnbekannt):
+                        // Befehl ist korrekt --> dann übergeben
+                        if (GCodeCheck(state.val) == true){
+                            request(
+                                {
+                                    url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=send&data={"cmd":"'+ state.val + '"}&apikey=' + repetierApi,
+                                },    
+                            );
+                            this.setState(id, {val: '', ack: true});
+                        }
+                        else{   // Befehl nicht korrekt --> abbrechen und Rückmeldung
+                            this.setState(id, {val: '', ack: true});
+                        }
+                        break;
+
+                    // Materialfluss ändern (10% - 200%)
+                    case (id.search('Steuern.Werte.Materialfluss') > 0 && (state.val >= 10) && (state.val <=200)):
+                        request(
+                            {
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=setFlowMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
+                            },    
+                        );
+                        break;
+
+                    // Druckgeschwindigkeit ändern (10% - 300%)
+                    case (id.search('Steuern.Werte.Druckgeschwindigkeit') > 0 && (state.val >= 10) && (state.val <=300)):
+                        request(
+                            {
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=setSpeedMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
+                            },    
+                        );
+                        break;
+
+                    // update_Printer - neu Printer vorhanden
+                    case (id.search('update.Printer')> 0 && state.val == true):
+
+                        printerUpdate(this);
+                        this.setState(id, {val: false, ack: true});
+                    
+                        break;
                 
-                    break;
+                    }
                 }
-            }
             }   
-        } else {
-            // The state was deleted
-            //this.log.info(`state ${id} deleted`);
         }
     }
 }
@@ -304,45 +318,6 @@ function main(tadapter)
     tadapter.subscribeStates('*');
     tadapter.log.debug('RepetierServer states subscribed');
     
-    // Adapterwerte übergeben
-    repetierIP = tadapter.config.repIP;
-    repetierPort = tadapter.config.repPort;
-    repetierApi = tadapter.config.repApiKey;
-
-
-    // *******************
-    // Adapterwerte prüfen
-    // *******************
-
-    // IP-Adresse prüfen
-    if(repetierIP == ''){
-        tadapter.log.info('Repetier IP: ' + repetierIP);
-        tadapter.log.info('Keine IP angegeben!');
-        tadapter.setState('info.connection', false, false);
-    }
-
-    // ApiKey prüfen
-    if(repetierApi == ''){
-        tadapter.log.info('Repetier ApiKey: ' + repetierApi);
-        tadapter.log.info('Kein ApiKey angegeben!');
-        tadapter.setState('info.connection', false, false);
-    }
-
-    // Port prüfen --> Defaultwert für Port übergeben, falls keine Angabe
-    if(repetierPort == '')    {
-        repetierPort = '3344';
-        tadapter.log.info('Repetier Defaultport 3344 wurde übernommen!');
-    }
-    
-    // Pfadangben vorbelegen
-    printerpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.' ;
-    serverpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.Server.';
-
-    // Adapterwerte ausgeben
-    tadapter.log.info('Repetier IP: ' + repetierIP);
-    tadapter.log.info('Repetier Port: ' + repetierPort);
-
-
     // ***************
     // Initialisierung
     // ***************
@@ -464,6 +439,7 @@ async function printerUpdate(tadapter, refreshtime)
 
 
 }
+
 
 // Serverdaten aktualisieren
 async function refreshServer(tadapter, refreshtime)
