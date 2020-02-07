@@ -3,7 +3,7 @@
         "name": "repetierserver",
         "version": "0.0.1",
         "news": {
-            "1.0.0": {
+            "0.0.1": {
                 "en": "Init ioBroker Adapter for RepetierServer",
                 "de": "Init ioBroker Adapter für RepetierServer"
                    }
@@ -62,7 +62,7 @@
             "type": "state",
             "common": {
                 "role": "indicator.connected",
-                "name": "Device or service connected",
+                "name": "RepetierServer connected",
                 "type": "boolean",
                 "read": true,
                 "write": false,

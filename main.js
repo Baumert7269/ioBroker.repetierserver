@@ -28,6 +28,14 @@ let printerdatenpfad = '' ;
 // Allgemeine Hilfsvariablen
 let i = 0 ;
 
+// Variablen für TimeOut-IDs
+let tou1 ;
+let tou2 ;
+let tou3 ;
+let tou4 ;
+let tou5 ;
+let tou6 ;
+
 // Hilfsvariablen für Zeitrechnungen
 let tStd = '' ; 
 let tMin = '' ;
@@ -61,7 +69,7 @@ class Template extends utils.Adapter {
     /**
      * Is called when databases are connected and adapter received configuration.
      */
-    async onReady() {
+    async onReady(callback) {
 
         // Initialisierung
         // Adapterwert 'info.connection' übergeben
@@ -71,94 +79,15 @@ class Template extends utils.Adapter {
 	    this.log.info('RepetierServer verbunden');
 
         // Hauptprogramm
-
-        this.subscribeStates('*');
-        this.log.debug('subscribed');
-        
-        // Adapterwerte übergeben
-        repetierIP = this.config.repIP;
-        repetierPort = this.config.repPort;
-        repetierApi = this.config.repApiKey;
-    
-    
-        // *******************
-        // Adapterwerte prüfen
-        // *******************
-    
-        // IP-Adresse prüfen
-        if(repetierIP == ''){
-            this.log.info('Repetier IP: ' + repetierIP);
-            this.log.info('Keine IP angegeben!');
-            this.setState('info.connection', false, false);
-        }
-    
-        // ApiKey prüfen
-        if(repetierApi == ''){
-            this.log.info('Repetier ApiKey: ' + repetierApi);
-            this.log.info('Keine ApiKey angegeben!');
-            this.setState('info.connection', false, false);
-        }
-    
-        // Port prüfen --> Defaultwert für Port übergeben, falls keine Angabe
-        if(repetierPort == '')
-        {
-            repetierPort = '3344';
-            this.log.info('Repetier Port mit 3344 übernommen!');
-        }
-        
-        // Pfadangben vorbelegen
-        printerpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.' ;
-        serverpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.Server.';
-    
-        // Adapterwerte ausgeben
-        this.log.info('Repetier IP: ' + repetierIP);
-        this.log.info('Repetier Port: ' + repetierPort);
-    
-    
-        // ***************
-        // Initialisierung
-        // ***************
-    
-        // PrinterStatus
-        refreshState(this);
-        
-        // Serverstatus
-        refreshServer(this);
-    
-        // PrinterUpdate
-        printerUpdate(this);
-    
-        // PrinterUpdate Button
-        PrinterUpdateButton(this);
-    
-        // PrinterMessage
-        PrinterMessage(this, '');
-    
-        // **********************
-        // Zeitgesteuerte Aufrufe
-        // **********************
-    
-        // Aufruf RefreshServer (alle 5 Min.)
-        setInterval(refreshServer(this), 300000);
-        
-        // Refresh Printer aktiv (alle 5 Sek.)
-        setInterval(refreshPrinterActive(this), 5000);
-    
-        // Refresh PrinterState (alle 2 Sek.)
-        setInterval(refreshState(this), 2000);
-    
-        // Refresh PrintJob (alle 5 Sek.)
-        setInterval(refreshPrintJob(this), 5000);
-    
-        // Refresh ServerUpdate (1x am Tag)
-        setInterval(serverUpdate(this), 86400000);
-
+        main(this);
 
         /*
         For every state in the system there has to be also an object of type state
         Here a simple template for a boolean variable named "testVariable"
         Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
         */
+
+        /*
         await this.setObjectAsync('testVariable', {
             type: 'state',
             common: {
@@ -172,28 +101,28 @@ class Template extends utils.Adapter {
         });
 
         // in this template all states changes inside the adapters namespace are subscribed
-        this.subscribeStates('*');
+        //this.subscribeStates('*');
 
         /*
         setState examples
         you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
         */
         // the variable testVariable is set to true as command (ack=false)
-        await this.setStateAsync('testVariable', true);
+        //await this.setStateAsync('testVariable', true);
 
         // same thing, but the value is flagged "ack"
         // ack should be always set to true if the value is received from or acknowledged from the target system
-        await this.setStateAsync('testVariable', { val: true, ack: true });
+        //await this.setStateAsync('testVariable', { val: true, ack: true });
 
         // same thing, but the state is deleted after 30s (getState will return null afterwards)
-        await this.setStateAsync('testVariable', { val: true, ack: true, expire: 30 });
+        //await this.setStateAsync('testVariable', { val: true, ack: true, expire: 30 });
 
         // examples for the checkPassword/checkGroup functions
-        let result = await this.checkPasswordAsync('admin', 'iobroker');
-        this.log.info('check user admin pw iobroker: ' + result);
+        //let result = await this.checkPasswordAsync('admin', 'iobroker');
+        //this.log.info('check user admin pw iobroker: ' + result);
 
-        result = await this.checkGroupAsync('admin', 'admin');
-        this.log.info('check group user admin group admin: ' + result);
+        //result = await this.checkGroupAsync('admin', 'admin');
+        //this.log.info('check group user admin group admin: ' + result);
     }
 
     /**
@@ -204,11 +133,12 @@ class Template extends utils.Adapter {
         try {
 
             // Alle Zeitgesteuerten Aufrufe löschen
-            clearInterval(refreshServer());
-            clearInterval(refreshPrinterActive());
-            clearInterval(refreshState());
-            clearInterval(refreshPrintJob());
-            clearInterval(serverUpdate());
+            clearTimeout(tou1);
+            clearTimeout(tou2);
+            clearTimeout(tou3);
+            clearTimeout(tou4);
+            clearTimeout(tou5);
+            clearTimeout(tou6);
 
             this.setState('info.connection', false, false);
 
@@ -234,7 +164,7 @@ class Template extends utils.Adapter {
             // The state was changed
             // Printername ermitteln
            const tmp = id.split('.');
-
+            if (tmp.length > 3) {
             if (tmp[3].search('rinter_') > 0 || tmp[3].search('pdate_Printer') > 0){  // --> Printer ohne 'P', damit search > 0 sein kann    
                 printername = tmp[3].replace('Printer_', '');
     
@@ -248,7 +178,7 @@ class Template extends utils.Adapter {
                             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=stopJob&apikey=' + repetierApi,
                         },    
                     );
-                    adapter.setState(id, {val: false, ack: true});
+                    this.setState(id, {val: false, ack: true});
                     break;
 
                 // Drucker NOT-STOP
@@ -258,7 +188,7 @@ class Template extends utils.Adapter {
                             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=emergencyStop&apikey=' + repetierApi,
                         },    
                     );
-                    adapter.setState(id, {val: false, ack: true});
+                    this.setState(id, {val: false, ack: true});
                     break;
 
                     // Printer Aktivieren
@@ -268,7 +198,7 @@ class Template extends utils.Adapter {
                             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=activate&data={"printer":"' + printername + '"}&apikey=' + repetierApi,
                         },    
                     );
-                    adapter.setState(id, {val: false, ack: true});
+                    this.setState(id, {val: false, ack: true});
                     break; 
 
                 // Printer Deaktivieren
@@ -278,7 +208,7 @@ class Template extends utils.Adapter {
                             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=deactivate&data={"printer":"' + printername + '"}&apikey=' + repetierApi,
                         },    
                     );
-                    adapter.setState(id, {val: false, ack: true});
+                    this.setState(id, {val: false, ack: true});
                     break;
 
                 // Druck Pause
@@ -288,7 +218,7 @@ class Template extends utils.Adapter {
                             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=send&data={"cmd":"@pause"}&apikey=' + repetierApi,
                         },    
                     );
-                    adapter.setState(id, {val: false, ack: true});
+                    this.setState(id, {val: false, ack: true});
                     break;
                 
                 // Druck fortsetzen
@@ -298,7 +228,7 @@ class Template extends utils.Adapter {
                             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=continueJob&apikey=' + repetierApi,
                         },    
                     );
-                    adapter.setState(id, {val: false, ack: true});
+                    this.setState(id, {val: false, ack: true});
                     break;
 
                 // Manueller G-Code-Befehl
@@ -310,10 +240,10 @@ class Template extends utils.Adapter {
                                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=send&data={"cmd":"'+ state.val + '"}&apikey=' + repetierApi,
                             },    
                         );
-                        adapter.setState(id, {val: '', ack: true});
+                        this.setState(id, {val: '', ack: true});
                     }
                     else{   // Befehl nicht korrekt --> abbrechen und Rückmeldung
-                        adapter.setState(id, {val: '', ack: true});
+                        this.setState(id, {val: '', ack: true});
                     }
                     break;
 
@@ -338,15 +268,16 @@ class Template extends utils.Adapter {
                 // update_Printer - neu Printer vorhanden
                 case (id.search('update.Printer')> 0 && state.val == true):
 
-                    printerUpdate();
-                    adapter.setState(id, {val: false, ack: true});
+                    printerUpdate(this);
+                    this.setState(id, {val: false, ack: true});
                 
                     break;
                 }
+            }
             }   
         } else {
             // The state was deleted
-            this.log.info(`state ${id} deleted`);
+            //this.log.info(`state ${id} deleted`);
         }
     }
 }
@@ -363,21 +294,97 @@ if (module.parent) {
     new Template();
 }
 
+// ***********************************************************************************************************
 
+// *************
+// Hauptprogramm
+// *************
+function main(tadapter)
+{
+    tadapter.subscribeStates('*');
+    tadapter.log.debug('RepetierServer states subscribed');
+    
+    // Adapterwerte übergeben
+    repetierIP = tadapter.config.repIP;
+    repetierPort = tadapter.config.repPort;
+    repetierApi = tadapter.config.repApiKey;
+
+
+    // *******************
+    // Adapterwerte prüfen
+    // *******************
+
+    // IP-Adresse prüfen
+    if(repetierIP == ''){
+        tadapter.log.info('Repetier IP: ' + repetierIP);
+        tadapter.log.info('Keine IP angegeben!');
+        tadapter.setState('info.connection', false, false);
+    }
+
+    // ApiKey prüfen
+    if(repetierApi == ''){
+        tadapter.log.info('Repetier ApiKey: ' + repetierApi);
+        tadapter.log.info('Kein ApiKey angegeben!');
+        tadapter.setState('info.connection', false, false);
+    }
+
+    // Port prüfen --> Defaultwert für Port übergeben, falls keine Angabe
+    if(repetierPort == '')    {
+        repetierPort = '3344';
+        tadapter.log.info('Repetier Defaultport 3344 wurde übernommen!');
+    }
+    
+    // Pfadangben vorbelegen
+    printerpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.' ;
+    serverpath = 'IP_' + repetierIP.replace(/\./g, '_') + '.Server.';
+
+    // Adapterwerte ausgeben
+    tadapter.log.info('Repetier IP: ' + repetierIP);
+    tadapter.log.info('Repetier Port: ' + repetierPort);
+
+
+    // ***************
+    // Initialisierung
+    // ***************
+
+    // PrinterUpdate Button
+    PrinterUpdateButton(tadapter);
+
+    // PrinterUpdate (alle 10 Min.) Timer-ID: tou1
+    printerUpdate(tadapter, 600000);
+ 
+    // Serverstatus (alle 5 Min.) Timer-ID: tou2
+    refreshServer(tadapter, 300000);
+
+    // Refresh ServerUpdate (1x am Tag) Timer-ID: tou3
+    serverUpdate(tadapter, 86400000);
+
+    // Refresh Printer aktiv (alle 5 Sek.) Timer-ID: tou4
+    refreshPrinterActive(tadapter, 5000);
+
+    // PrinterMessage
+    PrinterMessage(tadapter, '');
+
+    // PrinterStatus (alle 2 Sek.) Timer-ID:tou5
+    refreshState(tadapter, 2000);
+
+    // Refresh PrintJob (alle 5 Sek.) Timer-ID: tou6
+    refreshPrintJob(tadapter, 5000);
+	
+}
 
 // *****************
 // Printerfunktionen
 // *****************
 
 // neue oder gelöschte Printer
-function printerUpdate(tadapter)
+async function printerUpdate(tadapter, refreshtime)
 {
-
     // Alle Drucker innerhalb des Adapters einlesen
     /* Funktion folgte noch */
 
-// Abfrage und Auswertung
-    request(
+    // Abfrage und Auswertung
+    await request(
         {
             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
             json: true
@@ -448,14 +455,21 @@ function printerUpdate(tadapter)
             }
         }
     );
+
+    // Funktion erneut nach x Sekunden aufrufen
+    clearTimeout(tou1);
+    tou1 = setTimeout(() => {
+        printerUpdate(tadapter, refreshtime);
+    }, refreshtime);
+
+
 }
 
 // Serverdaten aktualisieren
-function refreshServer(tadapter)
+async function refreshServer(tadapter, refreshtime)
 {
-
     // Abfrage und Auswertung
-    request(
+    await request(
         {
             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
             json: true
@@ -509,14 +523,20 @@ function refreshServer(tadapter)
             }
         }
     );
+    
+    // Funktion erneut nach x Sekunden aufrufen
+    clearTimeout(tou2);
+    tou2 = setTimeout(() => {
+        refreshServer(tadapter, refreshtime);
+    }, refreshtime);
+
 }
 
 // Printerstatus aktualisieren
-function refreshPrinterActive(tadapter)
+async function refreshPrinterActive(tadapter, refreshtime)
 {
-        
     // Abfrage und Auswertung
-    request(
+    await request(
         {
             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
             json: true
@@ -545,10 +565,17 @@ function refreshPrinterActive(tadapter)
             }
         }
     );
+
+    // Funktion erneut nach x Sekunden aufrufen
+    clearTimeout(tou4);
+    tou4 = setTimeout(() => {
+        refreshPrinterActive(tadapter, refreshtime);
+    }, refreshtime);
+    
 }
 
 // Softwareupdate für Server
-function serverUpdate(tadapter)
+async function serverUpdate(tadapter, refreshtime)
 {
     // min. 1 Drucker muss vorhanden sein
     if (printercnt > 0){
@@ -557,7 +584,7 @@ function serverUpdate(tadapter)
         printername = aprinter[0];
 
         // Abfrage und Auswertung
-        request(
+        await request(
             {
                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=updateAvailable&apikey=' + repetierApi,
                 json: true
@@ -580,10 +607,17 @@ function serverUpdate(tadapter)
             }
         );
     }
+
+    // Funktion erneut nach x Sekunden aufrufen
+    clearTimeout(tou3);
+    tou3 = setTimeout(() => {
+        serverUpdate(tadapter, refreshtime);
+    }, refreshtime);
+
 }
 
 // Printerwerte aktualisieren
-function refreshState(tadapter){
+async function refreshState(tadapter, refreshtime){
 
     // Überhaupt Drucker vorhanden
     if (aprinter.length > 0){
@@ -595,7 +629,7 @@ function refreshState(tadapter){
             printername = aprinter[p];
 
             // Abfrage und Auswertung
-            request(
+            await request(
                 {
                     url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=stateList&data&apikey=' + repetierApi,
                     json: true
@@ -775,10 +809,16 @@ function refreshState(tadapter){
             );
         }
     }
+
+    // Funktion erneut nach x Sekunden aufrufen
+    clearTimeout(tou5);
+    tou5 = setTimeout(() => {
+        refreshState(tadapter, refreshtime);
+    }, refreshtime);
 }
 
 // PrintJob-Daten aktualisieren
-function refreshPrintJob(tadapter)
+async function refreshPrintJob(tadapter, refreshtime)
 {
     if (aprinter.length > 0){
 
@@ -789,14 +829,13 @@ function refreshPrintJob(tadapter)
             printername = aprinter[p];
 
             // Abfrage und Auswertung
-            request(
+            await request(
                 {
                     url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=listPrinter&data&apikey=' + repetierApi,
                     json: true
                 },
 
                 function (error, response, content){
-                    tadapter.log.debug('Request done');
             
                     if (!error && response.statusCode == 200){
                     
@@ -927,7 +966,7 @@ function refreshPrintJob(tadapter)
                                 // Fortschritt
                                 printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckfortschritt';
                                 DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckfortschritt in %', 'string', true, false, '%', 'info.status', '---');
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Drucker_druckt';
+                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Drucker_druckt';
                                 DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status', false);
 
                             }                                
@@ -937,6 +976,12 @@ function refreshPrintJob(tadapter)
             );
         }
     }
+
+    // Funktion erneut nach x Sekunden aufrufen
+    clearTimeout(tou6);
+    tou6 = setTimeout(() => {
+        refreshPrintJob(tadapter, refreshtime);
+    }, refreshtime);
 }
 
 // *********************

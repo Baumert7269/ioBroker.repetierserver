@@ -21,6 +21,7 @@ Folgende Funktionen stehen zur Verfügung:
   - Informationen zum Druckobjekt
   - Informationen zum Druckauftrag
   - Zeitinformationen
+- Übergabe von G-Code Befehlen
 
 Einige Datenpunkte werden erst erstellt, wenn der 3D-Drucker aktiviert wurde bzw. der erste Druckauftrag gestartet wurde. 
 Es werden nur Werte vom Drucker empfangen, wenn dieser 'aktiviert' ist!
@@ -55,6 +56,7 @@ The following functions are available:
   - Information about the print object
   - Information about the print job
   - time information
+- handover from C-Gode commands
 
 Some data points are only created when the 3D printer has been activated or the first print job has started. 
 
