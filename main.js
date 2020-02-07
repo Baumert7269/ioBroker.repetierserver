@@ -96,7 +96,6 @@ class Template extends utils.Adapter {
             this.log.info('Keine korrekte IP angegeben!');
             this.setState('info.connection', false, false);
             repIPOK = false;
-            this.terminate();
         }
         else {
             repIPOK = true;
@@ -108,7 +107,6 @@ class Template extends utils.Adapter {
             this.log.info('Kein ApiKey angegeben!');
             this.setState('info.connection', false, false);
             repApiKeyOK = false;
-            this.terminate();
         }
         else {
             repApiKeyOK = true;
