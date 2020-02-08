@@ -123,7 +123,7 @@ class Template extends utils.Adapter {
             repPortOK = true;
             this.log.info('Repetier Port: ' + repetierPort);
         }
-        
+  
         // Initisalsierung
         if (repIPOK == true && repPortOK == true && repApiKeyOK == true){
            
