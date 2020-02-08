@@ -1,7 +1,10 @@
 ![Logo](admin/repetier.png)
 # ioBroker.repetierserver
-
+[![NPM version](http://img.shields.io/npm/v/iobroker.repetierserver.svg)](https://www.npmjs.com/package/iobroker.repetierserver)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.repetierserver.svg)](https://www.npmjs.com/package/iobroker.repetierserver)
 [![Build Status](https://www.travis-ci.org/Baumert7269/ioBroker.repetierserver.svg?branch=master)](https://www.travis-ci.org/Baumert7269/ioBroker.repetierserver)
+
+[![NPM](https://nodei.co/npm/iobroker.repetierserver.png?downloads=true)](https://nodei.co/npm/iobroker.repetierserver/)
 
 ioBroker Adapter für Repetier-Server (3D-Drucker). Er soll die Einbindung und Steuerung eines 3D-Druckers, der über Repetier-Server läuft, in die Homeautomatisierung ermöglichen. 
 
