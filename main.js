@@ -339,7 +339,7 @@ function main(tadapter)
     PrinterMessage(tadapter, '');
 
     // PrinterStatus (alle 2 Sek.) Timer-ID:tou5
-    refreshState(tadapter, 2000);
+    refreshState(tadapter, 2500);
 
     // Refresh PrintJob (alle 5 Sek.) Timer-ID: tou6
     refreshPrintJob(tadapter, 5000);
@@ -351,13 +351,13 @@ function main(tadapter)
 // *****************
 
 // neue oder gelöschte Printer
-async function printerUpdate(tadapter, refreshtime)
+function printerUpdate(tadapter, refreshtime)
 {
     // Alle Drucker innerhalb des Adapters einlesen
     /* Funktion folgte noch */
 
     // Abfrage und Auswertung
-    await request(
+    request(
         {
             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
             json: true
@@ -440,10 +440,10 @@ async function printerUpdate(tadapter, refreshtime)
 
 
 // Serverdaten aktualisieren
-async function refreshServer(tadapter, refreshtime)
+function refreshServer(tadapter, refreshtime)
 {
     // Abfrage und Auswertung
-    await request(
+    request(
         {
             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
             json: true
@@ -507,10 +507,10 @@ async function refreshServer(tadapter, refreshtime)
 }
 
 // Printerstatus aktualisieren
-async function refreshPrinterActive(tadapter, refreshtime)
+function refreshPrinterActive(tadapter, refreshtime)
 {
     // Abfrage und Auswertung
-    await request(
+    request(
         {
             url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
             json: true
@@ -549,7 +549,7 @@ async function refreshPrinterActive(tadapter, refreshtime)
 }
 
 // Softwareupdate für Server
-async function serverUpdate(tadapter, refreshtime)
+function serverUpdate(tadapter, refreshtime)
 {
     // min. 1 Drucker muss vorhanden sein
     if (printercnt > 0){
@@ -558,7 +558,7 @@ async function serverUpdate(tadapter, refreshtime)
         printername = aprinter[0];
 
         // Abfrage und Auswertung
-        await request(
+        request(
             {
                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=updateAvailable&apikey=' + repetierApi,
                 json: true
@@ -591,7 +591,7 @@ async function serverUpdate(tadapter, refreshtime)
 }
 
 // Printerwerte aktualisieren
-async function refreshState(tadapter, refreshtime){
+function refreshState(tadapter, refreshtime){
 
     // Überhaupt Drucker vorhanden
     if (aprinter.length > 0){
@@ -603,7 +603,7 @@ async function refreshState(tadapter, refreshtime){
             printername = aprinter[p];
 
             // Abfrage und Auswertung
-            await request(
+            request(
                 {
                     url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=stateList&data&apikey=' + repetierApi,
                     json: true
@@ -792,7 +792,7 @@ async function refreshState(tadapter, refreshtime){
 }
 
 // PrintJob-Daten aktualisieren
-async function refreshPrintJob(tadapter, refreshtime)
+function refreshPrintJob(tadapter, refreshtime)
 {
     if (aprinter.length > 0){
 
@@ -803,7 +803,7 @@ async function refreshPrintJob(tadapter, refreshtime)
             printername = aprinter[p];
 
             // Abfrage und Auswertung
-            await request(
+            request(
                 {
                     url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=listPrinter&data&apikey=' + repetierApi,
                     json: true
