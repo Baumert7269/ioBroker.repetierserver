@@ -1,7 +1,7 @@
 ![Logo](admin/repetier.png)
 # ioBroker.repetierserver
 
-https://api.travis-ci.org/Baumert7269/ioBroker.repetierserver.svg?branch=master
+[![Build Status](https://www.travis-ci.org/Baumert7269/ioBroker.repetierserver.svg?branch=master)](https://www.travis-ci.org/Baumert7269/ioBroker.repetierserver)
 
 ioBroker Adapter für Repetier-Server (3D-Drucker). Er soll die Einbindung und Steuerung eines 3D-Druckers, der über Repetier-Server läuft, in die Homeautomatisierung ermöglichen. 
 
