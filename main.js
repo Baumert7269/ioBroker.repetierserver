@@ -13,6 +13,9 @@
 const utils = require('@iobroker/adapter-core');
 const request = require('request');
 
+// interne Fehlerrückmeldung
+const rsfail = 'rsError';
+
 // Rückmeldetext
 const rGcodeUnbekannt = 'unbekannter G-Code' ;
 
@@ -615,6 +618,9 @@ function refreshState(tadapter, refreshtime){
 
                         if (content && content.hasOwnProperty(printername)){
             
+                            // temporäre Variable, ob Druck läuft
+                            let tdruck_laeuft = false;
+
                             // Firmware --> Info
                             printerwert = content[printername].firmware; 
                             printerdatenpfad = printerpath + 'Printer_' + printername + '.Info.Firmware';
@@ -772,11 +778,20 @@ function refreshState(tadapter, refreshtime){
                             printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckgeschwindigkeit';
                             DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit in %', 'number', true, false, '%', 'value.speed', printerwert.toFixed(0));
 
-                            // Aktueller Layer --> PrintJob
-                            printerwert = content[printername].layer;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Layer_Aktuell';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Layer wird aktuell erstellt', 'number', true, false, '', 'value', printerwert);
+                            // prüfen, ob Druck läuft
+                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Drucker_druckt';
+                            tadapter.getState(printerdatenpfad, function(err, state){
+                                tdruck_laeuft = state.val
 
+                                // aktuell läuft ein Druck
+                                if (tdruck_laeuft == true){
+
+                                    // Aktueller Layer --> PrintJob
+                                    printerwert = content[printername].layer;
+                                    printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Layer_Aktuell';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Layer wird aktuell erstellt', 'number', true, false, '', 'value', printerwert);
+                                }
+                            });              
                         }
                     }
                 }
@@ -937,6 +952,10 @@ function refreshPrintJob(tadapter, refreshtime)
                                 printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Uhrzeit_Fertig';
                                 DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit wenn Druck fertig', 'string', true, false, 'Uhr', 'info.time', '--:--');
 
+                                 // Aktueller Layer --> PrintJob
+                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Layer_Aktuell';
+                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Layer wird aktuell erstellt', 'number', true, false, '', 'value', 0);
+
                                 // Fortschritt
                                 printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckfortschritt';
                                 DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckfortschritt in %', 'string', true, false, '%', 'info.status', '---');
@@ -996,6 +1015,23 @@ function DatenAusgabe(tadapter, d_Pfad, d_Type, c_Name, c_Type, c_Read, c_Write,
     tadapter.setState(d_Pfad, {val: d_Wert, ack: true});
 }
 
+
+// Daten von ioBroker lesen
+function DatenEinlesen(tadapter, d_pfad){
+
+    // Wert des Datenpunkts einlesen
+    tadapter.getState(d_pfad, (err, state) => {
+        // kein Fehler, dann Wert zurückgeben
+        if (!err && state && state.val){
+            return state.val;
+        }
+        // Fehler, dann interne Fehlermeldung zurückgeben
+        else{
+            tadapter.log.info('Lesefehler: ' + d_pfad);
+            return rsfail;
+        }
+    });
+}
 
 // grobe G-Code-Überprüfung
 function GCodeCheck(tadapter, G_Code){

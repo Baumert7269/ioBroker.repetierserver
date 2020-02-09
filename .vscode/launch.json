@@ -9,16 +9,26 @@
             "type": "node",
             "request": "launch",
             "name": "Programm starten",
-            "program": "${workspaceFolder}\\main.js",
+            "program": "C:/Program Files/iobroker/Testsystem1/node_modules/iobroker.repetierserver/main.js",
             "cwd": "${workspaceFolder}",
-            "args": ["--inspect-brk", "--force", "--trace-warnings", " -.logs"]
+            "runtimeExecutable": "C:/Program Files/iobroker/Testsystem1/nodejs/node.exe",
+            "args": [
+                "--inspect-brk", 
+                "--force",
+                "--trace-warnings",
+                " -.logs"
+            ],
+            "port": 9229
         },
         {
             "type": "node",
             "request": "attach",
-            "name": "An den Prozess anfügen",       // Name, der im VSCode Auswahlmenü neben dem grünen Play angezeigt wird
-            "address": "127.0.0.1",            // Adresse, an dem der node.js Prozess läuft (bei Remote Debug, der Remote-Rechner)
-            "port": 9229                            // Port, auf dem der node.js Debugger lauscht, der mit node --debug-brk ... gestartet wird
+            "name": "An den Prozess anfügen",   // Name, der im VSCode Auswahlmenü neben dem grünen Play angezeigt wird
+            "address": "127.0.0.1",             // Adresse, an dem der node.js Prozess läuft (bei Remote Debug, der Remote-Rechner)
+            "port": 9229,                        // Port, auf dem der node.js Debugger lauscht, der mit node --debug-brk ... gestartet wird
+
+            "cwd": "${workspaceFolder}",
+
         }
     ]
 }
