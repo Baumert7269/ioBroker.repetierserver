@@ -115,6 +115,8 @@ Some data points are only created when the 3D printer has been activated or the 
   - only one print can be started - no further print is accepted during a print
   - check before starting that the printbed is free!!!
 
+* (Baumert7269) Errorcodes implemented for extruder and heatbed
+
 * (Baumert7269) Bugfixes
   - fixed problem with 'Printer_undefined' when starting the adapter
 
