@@ -179,6 +179,7 @@ class Template extends utils.Adapter {
             amodelle.splice(0);
             aaktdruckid.splice(0);
 
+            // info-Ausgabe
             this.log.info('Repetier-Server Service bereinigt...');
 
             // info.connection zurücksetzen
