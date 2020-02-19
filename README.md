@@ -80,6 +80,24 @@ Some data points are only created when the 3D printer has been activated or the 
 
 ## Changelog
 
+### 0.0.2
+* (Baumert7269) 3D-Model-Management implemented
+  - optionally selectable in the configuration
+  - depending on the configuration choice, necessary channels and datapoints are created or deleted
+    - channel: PrintModel
+    - datapoints: Modelle and Update
+  - for each printer, the models loaded in the repeater server are loaded once into a selection list when the adapter is started
+  - each further update is done via the "update button"
+  - the model shown in the selection list is also the current start model
+  - the selected model is displayed in the name of the start button
+  - only one print can be started - no further print is accepted during a print
+  - check before starting that the printbed is free!!!
+
+* (Baumert7269) Bugfixes
+  - fixed problem with 'Printer_undefined' when starting the adapter
+
+* (Baumert7269) Code cleaned up and documented
+
 ### 0.0.1
 * (Baumert7269) initial release
 
