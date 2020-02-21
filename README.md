@@ -75,7 +75,7 @@ The following functions are available:
   - Information about the print object
   - Information about the print job
   - time information
-- handover from C-Gode commands
+- manuel G-Code commands
 - 3D-Model-Management implemented (V0.0.2)
   - optionally selectable in the configuration
   - depending on the configuration choice, necessary channels and datapoints are created or deleted
@@ -119,6 +119,8 @@ Some data points are only created when the 3D printer has been activated or the 
 
 * (Baumert7269) Bugfixes
   - fixed problem with 'Printer_undefined' when starting the adapter
+
+* (Baumert7269) io-package fields "connetionType" and "dataSource" integrated
 
 * (Baumert7269) Code cleaned up and documented
 

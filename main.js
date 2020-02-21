@@ -47,6 +47,7 @@ let tou9 ;
 // Statusvariablen für schnelle Reaktionen
 const aprinterAktiv = new Array;  // (Printer, aktiv)
 const aprinterDruckt = new Array; // (Printer, druckt)
+let serveronline = false; // Repetierserver online
 
 // interne Druckerübersicht/Druckerauswertung
 const aprinter = new Array;
@@ -654,7 +655,7 @@ function refreshServer(tadapter, refreshtime){
     
 }
 
-// Printerstatus aktualisieren
+// Printerstatus aktualisieren und prüfen, ob Server online
 function refreshPrinterActive(tadapter, refreshtime){
 
     // Hilfsvariablen
@@ -674,6 +675,10 @@ function refreshPrinterActive(tadapter, refreshtime){
         
                 if (!error && response.statusCode == 200){
                 
+                    // Server erreichbar
+                    serveronline = true; 
+                    tadapter.setState('info.connection', true, true);
+ 
                     // Alle Drucker einlesen
                     for (let p = 0; p < content.printers.length; p++) {
 
@@ -693,6 +698,11 @@ function refreshPrinterActive(tadapter, refreshtime){
                         printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Online';
                         DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker Online', 'number', true, false, '', 'info.status', printerwert);
                     }            
+                }
+                // Server nicht erreichbar
+                else{
+                    serveronline = false;
+                    tadapter.setState('info.connection', false, true);
                 }
             }
         );
