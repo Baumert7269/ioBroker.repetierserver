@@ -102,6 +102,10 @@ Some data points are only created when the 3D printer has been activated or the 
 
 ## Changelog
 
+### 0.0.3
+
+* (Baumert7269)
+
 ### 0.0.2
 * (Baumert7269) 3D-Model-Management implemented
   - optionally selectable in the configuration
