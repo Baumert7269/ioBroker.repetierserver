@@ -123,7 +123,7 @@ Some data points are only created when the 3D printer has been activated or the 
 
 * (Baumert7269) io-package fields "connetionType" and "dataSource" integrated
 
-* (Baumert7269) Object 'info.active' and 'info.printjob' integrated
+* (Baumert7269) Object 'info.activeprinter' and 'info.activeprintjob' integrated
 
 * (Baumert7269) Code cleaned up and documented
 
