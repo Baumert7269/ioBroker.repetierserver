@@ -3,10 +3,11 @@
 *.code-workspace
 node_modules
 nbproject
+.vscode
+desktop.ini
 
 # npm package files
 iobroker.*.tgz
-package - Kopie.json
 
 Thumbs.db
 

@@ -30,6 +30,17 @@ Folgende Funktionen stehen zur Verfügung:
   - Informationen zum Druckauftrag
   - Zeitinformationen
 - Übergabe von G-Code Befehlen
+- 3D-Model-Management implementiert (V0.0.2)
+  - optional in der Konfiguration wählbar
+  - je nach gewählter Konfiguration werden notwendige Kanäle und Datenpunkte angelegt oder gelöscht
+    - Kanal: DruckenModell
+    - Datenpunkte: Modelle und Aktualisierung
+  - Für jeden Drucker werden die im Repeater-Server geladenen Modelle beim Start des Adapters einmal in eine Auswahlliste geladen.
+  - jede weitere Aktualisierung erfolgt über den "Aktualisierungsknopf".
+  - das in der Auswahlliste angezeigte Modell auch das aktuelle Startmodell ist
+  - das ausgewählte Modell wird im Namen der Starttaste angezeigt
+  - es kann nur ein Druck gestartet werden - während eines Drucks wird kein weiterer Druck akzeptiert
+  - Prüfen Sie vor dem Start über ioBroker, ob das Druckbett frei ist!!!
 
 Einige Datenpunkte werden erst erstellt, wenn der 3D-Drucker aktiviert wurde bzw. der erste Druckauftrag gestartet wurde. 
 Es werden nur Werte vom Drucker empfangen, wenn dieser 'aktiviert' ist!
@@ -64,7 +75,18 @@ The following functions are available:
   - Information about the print object
   - Information about the print job
   - time information
-- handover from C-Gode commands
+- manuel G-Code commands
+- 3D-Model-Management implemented (V0.0.2)
+  - optionally selectable in the configuration
+  - depending on the configuration choice, necessary channels and datapoints are created or deleted
+    - channel: PrintModel
+    - datapoints: Modelle and Update
+  - for each printer, the models loaded in the repeater server are loaded once into a selection list when the adapter is started
+  - each further update is done via the "update button"
+  - the model shown in the selection list is also the current start model
+  - the selected model is displayed in the name of the start button
+  - only one print can be started - no further print is accepted during a print
+  - check before starting about ioBroker that the printbed is free!!!
 
 Some data points are only created when the 3D printer has been activated or the first print job has started. 
 
@@ -79,6 +101,31 @@ Some data points are only created when the 3D printer has been activated or the 
 
 
 ## Changelog
+
+### 0.0.2
+* (Baumert7269) 3D-Model-Management implemented
+  - optionally selectable in the configuration
+  - depending on the configuration choice, necessary channels and datapoints are created or deleted
+    - channel: PrintModel
+    - datapoints: Modelle and Update
+  - for each printer, the models loaded in the repeater server are loaded once into a selection list when the adapter is started
+  - each further update is done via the "update button"
+  - the model shown in the selection list is also the current start model
+  - the selected model is displayed in the name of the start button
+  - only one print can be started - no further print is accepted during a print
+  - check before starting that the printbed is free!!!
+
+* (Baumert7269) Errorcodes implemented for extruder and heatbed
+
+* (Baumert7269) Bugfixes
+  - fixed problem with 'Printer_undefined' when starting the adapter
+  - fixed problem with green instance indicator when no connention to Repetier-Server
+
+* (Baumert7269) io-package fields "connetionType" and "dataSource" integrated
+
+* (Baumert7269) Object 'info.active' and 'info.printjob' integrated
+
+* (Baumert7269) Code cleaned up and documented
 
 ### 0.0.1
 * (Baumert7269) initial release

@@ -13,10 +13,8 @@
 const utils = require('@iobroker/adapter-core');
 const request = require('request');
 
-// interne Fehlerrückmeldung
+// interne Fehlerrückmeldungen
 const rsfail = 'rsError';
-
-// Rückmeldetext
 const rGcodeUnbekannt = 'unbekannter G-Code' ;
 
 // Adapterparameter
@@ -26,6 +24,7 @@ let repetierPort = '' ;
 let repPortOK = false ;
 let repetierApi = '' ;
 let repApiKeyOK = false ;
+let repetierModel = false;
 
 // Datenübergabevariablen
 let printerwert ;
@@ -41,17 +40,22 @@ let tou3 ;
 let tou4 ;
 let tou5 ;
 let tou6 ;
+let tou7 ;
+let tou8 ;
+let tou9 ;
 
-// Hilfsvariablen für Zeitrechnungen
-let tStd = '' ; 
-let tMin = '' ;
-let tRStd = '';
-let tRMin = '';
+// Statusvariablen für schnelle Reaktionen
+const aprinterAktiv = new Array;  // (Printer, aktiv)
+const aprinterDruckt = new Array; // (Printer, druckt)
+let serveronline = false; // Repetierserver online
 
-// interne Druckerübersicht
+// interne Druckerübersicht/Druckerauswertung
 const aprinter = new Array;
-let printercnt ;
-let printername = '' ;
+let printerauswertung = false ;
+
+// Druckmodelle
+const amodelle = new Array; // (Printer, ID, Name, intNr, Gruppe)
+const aaktdruckid = new Array; // (Printer, aktID)
 
 // Hauptpfade
 let printerpath = '' ;
@@ -76,7 +80,7 @@ class Template extends utils.Adapter {
     /**
      * Is called when databases are connected and adapter received configuration.
      */
-    async onReady(callback) {
+    onReady(callback) {
 
         // Initialisierung
         // Adapterwert 'info.connection' übergeben
@@ -88,10 +92,12 @@ class Template extends utils.Adapter {
         // *******************
         // Adapterwerte prüfen
         // *******************
+        
         // Adapterwerte übergeben
         repetierIP = this.config.repIP;
         repetierPort = this.config.repPort;
         repetierApi = this.config.repApiKey;
+        repetierModel = this.config.repModel;
 
         // IP-Adresse prüfen
         if(repetierIP == '' || repetierIP == '0.0.0.0'){
@@ -127,6 +133,15 @@ class Template extends utils.Adapter {
             this.log.info('Repetier Port: ' + repetierPort);
         }
   
+        // Modul-Management prüfen
+        if (!repetierModel){
+            repetierModel = false;
+        }
+
+        if (repetierModel == true){
+            this.log.info('Repetier Model-Management aktiv'); 
+        }
+        
         // Initisalsierung
         if (repIPOK == true && repPortOK == true && repApiKeyOK == true){
            
@@ -145,20 +160,40 @@ class Template extends utils.Adapter {
     onUnload(callback) {
         try {
 
-            // Alle Zeitgesteuerten Aufrufe löschen
+            // Alle Timer für Zeitsteuerungen löschen
             clearTimeout(tou1);
             clearTimeout(tou2);
             clearTimeout(tou3);
             clearTimeout(tou4);
             clearTimeout(tou5);
             clearTimeout(tou6);
+            clearTimeout(tou7);
+            clearTimeout(tou8);
+            clearTimeout(tou9);
 
-            this.setState('info.connection', false, false);
+            // Arrays löschen
+            aprinterAktiv.splice(0);
+            aprinterDruckt.splice(0);
+            aprinter.splice(0);
+            amodelle.splice(0);
+            aaktdruckid.splice(0);
 
-            this.log.info('Repetier-Server Verbindungsaufbau gestoppt...');
-            this.log.info('Repetier-Server Service gestoppt...');
+            // info-Ausgabe
             this.log.info('Repetier-Server Service bereinigt...');
 
+            // info.connection zurücksetzen
+            this.setState('info.connection', false, false);
+
+            // info.active zurücksetzen
+            this.setState('info.active', {val: '', ack: true});
+
+            // info.printjob zurücksetzen
+            this.setState('info.printjob', {val: '', ack: true});
+
+            // Infos ausgeben
+            this.log.info('Repetier-Server Verbindungsaufbau gestoppt...');
+            this.log.info('Repetier-Server Service gestoppt...');
+            
             callback();
 
         } catch (e) {
@@ -176,6 +211,7 @@ class Template extends utils.Adapter {
         if (state) {
             // The state was changed
             // Printername ermitteln
+            let tprintername = '';
             const tmp = id.split('.');
 
             // Printername vorhanden
@@ -183,69 +219,77 @@ class Template extends utils.Adapter {
 
                 // Printername auswerten
                 if (tmp[3].search('rinter_') > 0 || tmp[3].search('pdate_Printer') > 0){  // --> Printer ohne 'P', damit search > 0 sein kann    
-                    printername = tmp[3].replace('Printer_', '');
-        
+                    
+                    // Printername aufbauen
+                    tprintername = tmp[3].replace('Printer_', '');
+                        
                     // Welcher Steuerbefehl des Printers wurde geändert 
                     switch(true){
 
-                        // Druck Stopp
+                    // Druck Stopp
                     case (id.search('Steuern.Signale.Stopp')> 0 && state.val == true):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=stopJob&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=stopJob&apikey=' + repetierApi,
                             },    
                         );
                         this.setState(id, {val: false, ack: true});
+                        
                         break;
 
                     // Drucker NOT-STOP
                     case (id.search('Steuern.Signale.NOTSTOP')> 0 && state.val == true):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=emergencyStop&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=emergencyStop&apikey=' + repetierApi,
                             },    
                         );
                         this.setState(id, {val: false, ack: true});
+                        
                         break;
 
                         // Printer Aktivieren
                     case (id.search('Steuern.Signale.Aktivieren') > 0 && state.val == true):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=activate&data={"printer":"' + printername + '"}&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=activate&data={"printer":"' + tprintername + '"}&apikey=' + repetierApi,
                             },    
                         );
                         this.setState(id, {val: false, ack: true});
+                        
                         break; 
 
                     // Printer Deaktivieren
                     case (id.search('Steuern.Signale.Deaktivieren')> 0 && state.val == true):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=deactivate&data={"printer":"' + printername + '"}&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=deactivate&data={"printer":"' + tprintername + '"}&apikey=' + repetierApi,
                             },    
                         );
                         this.setState(id, {val: false, ack: true});
+                        
                         break;
 
                     // Druck Pause
                     case (id.search('Steuern.Signale.Pause')> 0 && state.val == true):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=send&data={"cmd":"@pause"}&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=send&data={"cmd":"@pause"}&apikey=' + repetierApi,
                             },    
                         );
                         this.setState(id, {val: false, ack: true});
+                        
                         break;
                     
                     // Druck fortsetzen
                     case (id.search('Steuern.Signale.Fortsetzen')> 0 && state.val == true):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=continueJob&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=continueJob&apikey=' + repetierApi,
                             },    
                         );
                         this.setState(id, {val: false, ack: true});
+                        
                         break;
 
                     // Manueller G-Code-Befehl
@@ -254,7 +298,7 @@ class Template extends utils.Adapter {
                         if (GCodeCheck(state.val) == true){
                             request(
                                 {
-                                    url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=send&data={"cmd":"'+ state.val + '"}&apikey=' + repetierApi,
+                                    url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=send&data={"cmd":"'+ state.val + '"}&apikey=' + repetierApi,
                                 },    
                             );
                             this.setState(id, {val: '', ack: true});
@@ -262,30 +306,105 @@ class Template extends utils.Adapter {
                         else{   // Befehl nicht korrekt --> abbrechen und Rückmeldung
                             this.setState(id, {val: '', ack: true});
                         }
+
                         break;
 
                     // Materialfluss ändern (10% - 200%)
                     case (id.search('Steuern.Werte.Materialfluss') > 0 && (state.val >= 10) && (state.val <=200)):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=setFlowMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=setFlowMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
                             },    
                         );
+
                         break;
 
                     // Druckgeschwindigkeit ändern (10% - 300%)
                     case (id.search('Steuern.Werte.Druckgeschwindigkeit') > 0 && (state.val >= 10) && (state.val <=300)):
                         request(
                             {
-                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=setSpeedMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
+                                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=setSpeedMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
                             },    
                         );
+
                         break;
 
-                    // update_Printer - neu Printer vorhanden
-                    case (id.search('update.Printer')> 0 && state.val == true):
+                    // Druckmodelle updaten
+                    case (id.search('PrintModel.Update') > 0 && state.val == true):
+                        
+                        // Modelle neu einlesen
+                        refreshModel(this, tprintername, 2000);
 
-                        printerUpdate(this);
+                        break;
+
+                    // akt. Druckmodel
+                    case (id.search('PrintModel.Modelle') > 0 && state.val >= 0):
+
+                        // Printernummer suchen
+                        for (let p = 0; p < amodelle.length; p++) {
+                            if (amodelle[p]["Printer"] == tprintername && amodelle[p]["intNr"] == state.val){
+
+                                // Modelname in Beschreibung des Startbuttons schreiben
+                                printerdatenpfad = printerpath + 'Printer_' + tprintername + '.Steuern.Signale.Start';
+                                let objName = 'Drucker >' + tprintername + '< starten (' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ')'
+                                this.setObjectNotExists(printerdatenpfad,{
+                                    type: 'state',
+                                    common:
+                                    {
+                                        name:   objName,
+                                        type:   'boolean',
+                                        read:   true,
+                                        write:  true,
+                                        role:   'button'
+                                    },
+                                    native: {}
+                                });
+                                this.extendObject(printerdatenpfad,{common: {name: objName}});
+
+                                // Meldung ausgeben
+                                this.log.info('Druckteil ' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ' wurde am Drucker >' + tprintername + '< gesetzt...');
+                                PrinterMessage(this, 'Druckteil ' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ' wurde am Drucker >' + tprintername + '< gesetzt...');
+
+                                // aktive ModelID setzen
+                                SetModelIDPrinter(tprintername, amodelle[p]['ID'])
+
+                                break;
+                            }
+                        }
+
+                        break;
+
+                    // Druckstarten
+                    case (id.search('Steuern.Signale.Start') > 0 && state.val == true):
+                        
+                        // druckerbezogene Statuswerte holen
+                        let paktiv = GetPrinterAktiv(tprintername);
+                        let pdruck = GetPrinterPrinted(tprintername);
+                        
+                        // Drucknur möglich wenn Drucker aktivier und nicht druckt
+                        if (paktiv == true && pdruck == false){
+                           
+                            // Funktion ausfrufen
+                            PrinterStart(this, tprintername, 2000);
+                        }
+
+                        // state zurücksetzen
+                        this.setState(id, {val: false, ack: true});
+
+                        break;
+
+                    // update_Printer - neu Printer vorhanden/gelöschte Drucker entfernen (ToDo)
+                    case (id.search('Printer_update') > 0 && state.val == true):
+                        // Printerauswertung zurücksetzen
+                        printerauswertung = false;
+
+                        // Meldung ausgeben
+                        PrinterMessage(this, 'Printerupdate wird durchgeführt');
+
+                        // Printerupdate durchführen
+                        printerUpdate(this, 2000);
+
+                        // state zurücksetzen
                         this.setState(id, {val: false, ack: true});
                     
                         break;
@@ -319,16 +438,17 @@ function main(tadapter)
     tadapter.subscribeStates('*');
     tadapter.log.debug('RepetierServer states subscribed');
     
-    // ***************
     // Initialisierung
-    // ***************
+    // ===============
 
     // PrinterUpdate Button
     PrinterUpdateButton(tadapter);
+    
+    // PrinterUpdate (alle 20 Min.) Timer-ID: tou1
+    // Diese Funktion muss vor den folgenden Funktion kompett durchlaufen sein
+    // Die Variable "printerauswertung" wird hierzu verwendet
+    printerUpdate(tadapter, 120000);
 
-    // PrinterUpdate (alle 10 Min.) Timer-ID: tou1
-    printerUpdate(tadapter, 600000);
- 
     // Serverstatus (alle 5 Min.) Timer-ID: tou2
     refreshServer(tadapter, 300000);
 
@@ -346,7 +466,16 @@ function main(tadapter)
 
     // Refresh PrintJob (alle 5 Sek.) Timer-ID: tou6
     refreshPrintJob(tadapter, 5000);
-	
+
+    // 3D Model Management aktiviert
+    // =============================
+
+    // Startbutton verteilen wenn aktiv, entfernen wenn inaktiv
+    PrinterModelButtons(tadapter, repetierModel, 2000);
+
+    // Modelle initial einlesen, wenn aktiv
+    RefreshModelInit(tadapter, repetierModel,2000);
+
 }
 
 // *****************
@@ -354,8 +483,13 @@ function main(tadapter)
 // *****************
 
 // neue oder gelöschte Printer
-function printerUpdate(tadapter, refreshtime)
-{
+function printerUpdate(tadapter, refreshtime){
+ 
+    // Variable für Printeranzahl
+    let fprintercnt = 0;
+    let fprintername = '';
+    let erl = false;
+
     // Alle Drucker innerhalb des Adapters einlesen
     /* Funktion folgte noch */
 
@@ -367,222 +501,268 @@ function printerUpdate(tadapter, refreshtime)
         },
 
         function (error, response, content){
-    
+
             if (!error && response.statusCode == 200){
 
                 //Druckeranzahl
-                printercnt = content.printers.length;
+                fprintercnt = content.printers.length;
 
                 // Alle Drucker einlesen
-                for (let p = 0; p < printercnt; p++) {
+                for (let p = 0; p < fprintercnt; p++) {
 
                     // Druckername
-                    printername = content.printers[p].slug;
+                    //printername = content.printers[p].slug;
 
                     // Array aprinter füllen
-                    aprinter[p] = printername;
+                    aprinter[p] = content.printers[p].slug;
 
                     // über alle Printer
-                    for (let p = 0; p < printercnt; p++) {
+                    for (let p = 0; p < fprintercnt; p++) {
 
                         // Printername 
-                        printername = aprinter[p];
-            
-                        // Drucker aktivieren
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Steuern.Signale.Aktivieren';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker aktivieren', 'boolean', true, true, '', 'button', false);
-            
-                        // Drucker deaktivieren
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Steuern.Signale.Deaktivieren';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker deaktivieren', 'boolean', true, true, '', 'button', false);
+                        fprintername = aprinter[p];
+
+                        if (fprintername){
+
+                            // Drucker aktivieren
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Aktivieren';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker aktivieren', 'boolean', true, true, '', 'button', false);
                 
-                        // Drucker PrintJob Stop
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Steuern.Signale.Stopp';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'PrintJob stoppen', 'boolean', true, true, '', 'button', false);
+                            // Drucker deaktivieren
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Deaktivieren';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker deaktivieren', 'boolean', true, true, '', 'button', false);
+                    
+                            // Drucker PrintJob Stop
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Stopp';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'PrintJob stoppen', 'boolean', true, true, '', 'button', false);
 
-                        // Drucker NOT-STOP
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Steuern.Signale.NOTSTOP';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', '>>>>> NOT-STOP <<<<<', 'boolean', true, true, '', 'button', false);
-                        
-                        // Drucker PrintJob Pause
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Steuern.Signale.Pause';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'PrintJob Pause', 'boolean', true, true, '', 'button', false);
-                        
-                        // Drucker PrintJob Fortsetzen
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Steuern.Signale.Fortsetzen';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'PrintJob fortsetzen', 'boolean', true, true, '', 'button', false); 
+                            // Drucker NOT-STOP
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.NOTSTOP';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', '>>>>> NOT-STOP <<<<<', 'boolean', true, true, '', 'button', false);
+                            
+                            // Drucker PrintJob Pause
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Pause';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'PrintJob Pause', 'boolean', true, true, '', 'button', false);
+                            
+                            // Drucker PrintJob Fortsetzen
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Fortsetzen';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'PrintJob fortsetzen', 'boolean', true, true, '', 'button', false); 
 
-                        // Manueller G-Code Befehl
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Befehl.G_Code';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Manueller G-Code', 'string', true, true, '', 'text.command', ''); 
+                            // Manueller G-Code Befehl
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Befehl.G_Code';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Manueller G-Code', 'string', true, true, '', 'text.command', ''); 
 
-                        // Materialfluss ändern (10% - 200%)
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Steuern.Werte.Materialfluss';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Materialfluss ändern', 'number', true, true, '%', 'value', 100); 
+                            // Materialfluss ändern (10% - 200%)
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte.Materialfluss';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Materialfluss ändern', 'number', true, true, '%', 'value', 100); 
 
-                        // Druckgeschwindigkeit ändern (10% - 300%)
-                        printerdatenpfad = printerpath + 'Printer_' + printername + '.Steuern.Werte.Druckgeschwindigkeit';
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit ändern', 'number', true, true, '%', 'value', 100); 
+                            // Druckgeschwindigkeit ändern (10% - 300%)
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte.Druckgeschwindigkeit';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit ändern', 'number', true, true, '%', 'value', 100); 
+                        }
                     }
 
                     // Message ausgeben
                     PrinterMessage(tadapter, 'Printerupdate durchgeführt');
+
+                    // Auswertung merken
+                    printerauswertung = true;
+
+                    // Durchlauf erledigt
+                    erl = true;
                 }
             }
         }
     );
-
-    // Funktion erneut nach x Sekunden aufrufen
-    clearTimeout(tou1);
-    tou1 = setTimeout(() => {
-        printerUpdate(tadapter, refreshtime);
-    }, refreshtime);
-
+    
+    //Funktion erneut nach x Sekunden aufrufen
+    if (erl = false){
+        clearTimeout(tou1);
+        tou1 = setTimeout(() => {
+            printerUpdate(tadapter, refreshtime);
+        }, refreshtime);
+    }
+    else{
+        clearTimeout(tou1);
+    }
 
 }
 
-
 // Serverdaten aktualisieren
-function refreshServer(tadapter, refreshtime)
-{
-    // Abfrage und Auswertung
-    request(
-        {
-            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
-            json: true
-        },
+function refreshServer(tadapter, refreshtime){
 
-        function (error, response, content){
-    
-            if (!error && response.statusCode == 200){
+    // Durchlauf erst nach Printerauswertung
+    if (printerauswertung == true){
 
-                // Abfrage Serverdaten
-                // Programmname --> Server  
-                printerwert = content.name;
-                printerdatenpfad = serverpath + 'Programm';
-                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Name des Programms', 'string', true, false, '', 'info.name', printerwert);
-       
-                // Versionsname --> Server
-                printerwert = content.servername;
-                printerdatenpfad = serverpath + 'Versionsname';
-                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Name der Version', 'string', true, false, '', 'info.name', printerwert);
-    
-                //Versionsnummer --> Server
-                printerwert = content.version;
-                printerdatenpfad = serverpath + 'VersionNr';
-                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'VersionNummer', 'string', true, false, '', 'info.version', printerwert);
-                
-                //UUID --> Server
-                printerwert = content.serveruuid;
-                printerdatenpfad = serverpath + 'UUID';
-                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'UUID des Servers', 'string', true, false, '', 'info', printerwert);
-                
-                //Druckeranzahl --> Server
-                printerwert = content.printers.length;
-                printerdatenpfad = serverpath + 'Druckeranzahl';
-                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der vorhandenen Drucker', 'number', true, false, '', 'info', printerwert);
+        // Abfrage und Auswertung
+        request(
+            {
+                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
+                json: true
+            },
 
-                // IP-Adresse --> Server
-                printerwert = repetierIP;
-                printerdatenpfad = serverpath + 'Server_IP';
-                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'IP-Adresse des Servers', 'string', true, false, '', 'info', printerwert);
-                
-				// Port --> Server
-                printerwert = repetierPort;
-                printerdatenpfad = serverpath + 'Server_Port';
-                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Port-Nummer des Servers', 'string', true, false, '', 'info', printerwert);
-                
-				// ApiKey --> Server
-                printerwert = repetierApi;
-                printerdatenpfad = serverpath + 'Server_ApiKey';
-                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'ApiKey des Servers', 'string', true, false, '', 'info', printerwert);
-                
+            function (error, response, content){
+        
+                if (!error && response.statusCode == 200){
+
+                    // Abfrage Serverdaten
+                    // Programmname --> Server  
+                    printerwert = content.name;
+                    printerdatenpfad = serverpath + 'Programm';
+                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Name des Programms', 'string', true, false, '', 'info.name', printerwert);
+        
+                    // Versionsname --> Server
+                    printerwert = content.servername;
+                    printerdatenpfad = serverpath + 'Versionsname';
+                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Name der Version', 'string', true, false, '', 'info.name', printerwert);
+        
+                    //Versionsnummer --> Server
+                    printerwert = content.version;
+                    printerdatenpfad = serverpath + 'VersionNr';
+                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'VersionNummer', 'string', true, false, '', 'info.version', printerwert);
+                    
+                    //UUID --> Server
+                    printerwert = content.serveruuid;
+                    printerdatenpfad = serverpath + 'UUID';
+                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'UUID des Servers', 'string', true, false, '', 'info', printerwert);
+                    
+                    //Druckeranzahl --> Server
+                    printerwert = content.printers.length;
+                    printerdatenpfad = serverpath + 'Druckeranzahl';
+                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der vorhandenen Drucker', 'number', true, false, '', 'info', printerwert);
+
+                    // IP-Adresse --> Server
+                    printerwert = repetierIP;
+                    printerdatenpfad = serverpath + 'Server_IP';
+                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'IP-Adresse des Servers', 'string', true, false, '', 'info', printerwert);
+                    
+                    // Port --> Server
+                    printerwert = repetierPort;
+                    printerdatenpfad = serverpath + 'Server_Port';
+                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Port-Nummer des Servers', 'string', true, false, '', 'info', printerwert);
+                    
+                    // ApiKey --> Server
+                    printerwert = repetierApi;
+                    printerdatenpfad = serverpath + 'Server_ApiKey';
+                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'ApiKey des Servers', 'string', true, false, '', 'info', printerwert);
+                    
+                }
             }
-        }
-    );
-    
+        );
+    }
+
     // Funktion erneut nach x Sekunden aufrufen
     clearTimeout(tou2);
     tou2 = setTimeout(() => {
         refreshServer(tadapter, refreshtime);
     }, refreshtime);
-
+    
 }
 
-// Printerstatus aktualisieren
-function refreshPrinterActive(tadapter, refreshtime)
-{
-    // Abfrage und Auswertung
-    request(
-        {
-            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
-            json: true
-        },
+// Printerstatus aktualisieren und prüfen, ob Server online
+function refreshPrinterActive(tadapter, refreshtime){
 
-        function (error, response, content){
-    
-            if (!error && response.statusCode == 200){
-               
-                // Alle Drucker einlesen
-                for (let p = 0; p < printercnt; p++) {
+    // Hilfsvariablen
+    let fprintername = '';
 
-                    // Druckername
-                    printername = content.printers[p].slug;
+    // Durchlauf erst nach Printerauswertung
+    if (printerauswertung == true){
 
-                    // Drucker aktiviert --> Drucker Status
-                    printerwert = content.printers[p].active;
-                    printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Aktiviert';
-                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker aktiviert', 'boolean', true, false, '', 'info.status', printerwert);
+        // Abfrage und Auswertung
+        request(
+            {
+                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/info',
+                json: true
+            },
 
-                    // Drucker Online --> Drucker Status
-                    printerwert=content.printers[p].online;
-                    printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Online';
-                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker Online', 'number', true, false, '', 'info.status', printerwert);
-                }            
+            function (error, response, content){
+        
+                if (!error && response.statusCode == 200){
+                
+                    // Server erreichbar
+                    serveronline = true; 
+                    info(tadapter, serveronline);
+
+                    // Alle Drucker einlesen
+                    for (let p = 0; p < content.printers.length; p++) {
+
+                        // Druckername
+                        fprintername = content.printers[p].slug;
+
+                        // Drucker aktiviert --> Drucker Status
+                        printerwert = content.printers[p].active;
+                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Aktiviert';
+                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker aktiviert', 'boolean', true, false, '', 'info.status', printerwert);
+
+                        // DruckerStatus in Array übergeben
+                        SetPrinterAktiv(fprintername, printerwert);
+
+                        // Drucker Online --> Drucker Status
+                        printerwert=content.printers[p].online;
+                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Online';
+                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker Online', 'number', true, false, '', 'info.status', printerwert);
+                    }            
+                }
+                // Server nicht erreichbar
+                else{
+                    serveronline = false;
+                    info(tadapter, serveronline);
+                }
             }
-        }
-    );
+        );
+    }
 
     // Funktion erneut nach x Sekunden aufrufen
     clearTimeout(tou4);
     tou4 = setTimeout(() => {
         refreshPrinterActive(tadapter, refreshtime);
     }, refreshtime);
-    
+ 
 }
 
 // Softwareupdate für Server
-function serverUpdate(tadapter, refreshtime)
-{
-    // min. 1 Drucker muss vorhanden sein
-    if (printercnt > 0){
+function serverUpdate(tadapter, refreshtime){
 
-        // ersten Drucker wählen
-        printername = aprinter[0];
+    // Hilfsvariablen
+    let fprintername = '';
 
-        // Abfrage und Auswertung
-        request(
-            {
-                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=updateAvailable&apikey=' + repetierApi,
-                json: true
-            },
-            function (error, response, content){
+    // Durchlauf erst nach Printerauswertung
+    if (printerauswertung == true){
 
-                if (!error && response.statusCode == 200){
+        // min. 1 Drucker muss vorhanden sein
+        if (aprinter.length > 0){
 
-                    // Demovesion --> Server
-                    printerwert = content.demo;
-                    printerdatenpfad = serverpath + 'Demoversion';
-                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Demoversion', 'boolean', true, false, '', 'info', printerwert);
+            // ersten Drucker wählen
+            fprintername = aprinter[0];
 
-                    // Softwareupdate vorhanden --> Server
-                    printerwert = content.updateAvailable;
-                    printerdatenpfad = serverpath + 'Update';
-                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Softwareupdate vorhanden', 'boolean', true, false, '', 'info', printerwert);
+            // Printername vorhanden
+            if (fprintername){
 
-                }
+                // Abfrage und Auswertung
+                request(
+                    {
+                        url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + fprintername + '?a=updateAvailable&apikey=' + repetierApi,
+                        json: true
+                    },
+                    function (error, response, content){
+
+                        if (!error && response.statusCode == 200){
+
+                            // Demovesion --> Server
+                            printerwert = content.demo;
+                            printerdatenpfad = serverpath + 'Demoversion';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Demoversion', 'boolean', true, false, '', 'info', printerwert);
+
+                            // Softwareupdate vorhanden --> Server
+                            printerwert = content.updateAvailable;
+                            printerdatenpfad = serverpath + 'Update';
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Softwareupdate vorhanden', 'boolean', true, false, '', 'info', printerwert);
+
+                        }
+                    }
+                );
             }
-        );
+        }
     }
 
     // Funktion erneut nach x Sekunden aufrufen
@@ -590,213 +770,254 @@ function serverUpdate(tadapter, refreshtime)
     tou3 = setTimeout(() => {
         serverUpdate(tadapter, refreshtime);
     }, refreshtime);
-
+    
 }
 
 // Printerwerte aktualisieren
 function refreshState(tadapter, refreshtime){
+        
+     // Hilfsvariablen
+     let fprintername = '';
 
-    // Überhaupt Drucker vorhanden
-    if (aprinter.length > 0){
+    // Durchlauf erst nach Printerauswertung
+    if (printerauswertung == true){
 
-        // über alle Drucker
-        for (let p = 0; p < printercnt; p++) {
+        // Überhaupt Drucker vorhanden
+        if (aprinter.length > 0){
 
-            // Printername
-            printername = aprinter[p];
+            // über alle Drucker
+            for (let p = 0; p < aprinter.length; p++) {
 
-            // Abfrage und Auswertung
-            request(
-                {
-                    url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=stateList&data&apikey=' + repetierApi,
-                    json: true
-                },
+                // Printername
+                fprintername = aprinter[p];
 
-                function (error, response, content){
-                
-                    if (!error && response.statusCode == 200){
+                // Printername vorhanden
+                if(fprintername){
 
-                        if (content && content.hasOwnProperty(printername)){
-            
-                            // temporäre Variable, ob Druck läuft
-                            let tdruck_laeuft = false;
+                    // Abfrage und Auswertung
+                    request(
+                        {
+                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + fprintername + '?a=stateList&data&apikey=' + repetierApi,
+                            json: true
+                        },
 
-                            // Firmware --> Info
-                            printerwert = content[printername].firmware; 
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Info.Firmware';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Firmware des Druckers', 'string', true, false, '', 'info', printerwert);
-                            
-                            // Anzahl Extruder --> Info
-                            printerwert = content[printername].extruder.length;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Info.Extruderanzahl';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Extruder', 'number', true, false, '', 'info', printerwert);
+                        function (error, response, content){
+                        
+                            if (!error && response.statusCode == 200){
 
-                            // Anzahl Heizbeden --> Info
-                            printerwert = content[printername].heatedBeds.length;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Info.Heizbedanzahl';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Heizbeden', 'number', true, false, '', 'info', printerwert);
-
-                            // Anzahl Lüfter --> Info
-                            printerwert = content[printername].fans.length; 
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Info.Lüfteranzahl';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Lüfter', 'number', true, false, '', 'info', printerwert);
-
-                            // Anzahl Heizkammern --> Info
-                            printerwert = content[printername].heatedChambers.length; 
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Info.Heizkammern';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Heizkammern', 'number', true, false, '', 'info', printerwert);
-
-                            // X-Position --> Positionen
-                            printerwert = content[printername].x;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Koordinaten.Position_X';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'X-Position', 'number', true, false, 'mm', 'value', printerwert.toFixed(3));
-                            
-                            // Y-Position --> Positionen
-                            printerwert = content[printername].y;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Koordinaten.Position_Y';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Y-Position', 'number', true, false, 'mm', 'value', printerwert.toFixed(3));
-
-                            // Z-Position --> Positionen
-                            printerwert = content[printername].z;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Koordinaten.Position_Z';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Z-Position', 'number', true, false, 'mm', 'value', printerwert.toFixed(3));
-
-                            // X-Homing --> Homing
-                            printerwert = content[printername].hasXHome;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Homing.Achse_X';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Referenzfahrt X-Achse erfolgt', 'boolean', true, false, '', 'value', printerwert);
-
-                            // Y-Homing --> Homing
-                            printerwert = content[printername].hasYHome;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Homing.Achse_Y';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Referenzfahrt Y-Achse erfolgt', 'boolean', true, false, '', 'value', printerwert);
-
-                            // Z-Homing --> Homing
-                            printerwert = content[printername].hasZHome;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Homing.Achse_Z';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Referenzfahrt Z-Achse erfolgt', 'boolean', true, false, '', 'value', printerwert);
-
-                            // Druckertür --> Status
-                            printerwert = content[printername].doorOpen;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Tür_geöffnet';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Tür zum Drucker geöffnet', 'boolean', true, false, '', 'value', printerwert);
-
-                            // Power Ein (M80) --> Status
-                            printerwert = content[printername].powerOn;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Power_Ein';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Power (M80) eingeschaltet', 'boolean', true, false, '', 'switch.power', printerwert);
-
-                            // Lichter --> Status
-                            printerwert = content[printername].lights;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Lichter';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Lichter eingeschaltet (Versuch)', 'number', true, false, '', 'value', printerwert);
-
-                            // TemperaturIstWerte der Extruder übergeben
-                            for (i=0 ; i < content[printername].extruder.length; i++){
-                                printerwert = content[printername].extruder[i].tempRead;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Istwerte.Extruder_' + (i+1) +'_Temperatur';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Temperaturwert Extruder ' + (i + 1), 'number', true, false, '°C', 'value.temperature', printerwert.toFixed(1));
-                            }
-
-                            // HeizleistungIstWerte der Extruder übergeben
-                            for (i=0 ; i < content[printername].extruder.length; i++){
-                                printerwert = content[printername].extruder[i].output;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Istwerte.Extruder_' + (i+1) +'_Heizleistung';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Heizleistung Extruder ' + (i + 1), 'number', true, false, '%', 'value.value', printerwert.toFixed(0));
-                            }
-
-                            // TemperaturSollWerte der Extruder übergeben
-                            for (i=0 ; i < content[printername].extruder.length; i++){
-                                printerwert = content[printername].extruder[i].tempSet;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Sollvorgaben.Extruder_' + (i+1) +'_Temperatur';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Solltemperatur Extruder ' + (i + 1), 'number', true, false, '°C', 'value.temperature.setpoint', printerwert);
-                            }
-
-                            // TemperaturIstWerte der Heizbeden übergeben
-                            for (i=0 ; i < content[printername].heatedBeds.length; i++){
-                                printerwert = content[printername].heatedBeds[i].tempRead;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Istwerte.Heizbed_' + (i+1) +'_Temperatur';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Temperaturwert Heizbed ' + (i + 1), 'number', true, false, '°C', 'value.temperature', printerwert.toFixed(1));
-                            }
-
-                            // HeizleistungIstWerte der Heizbeden übergeben
-                            for (i=0 ; i < content[printername].heatedBeds.length; i++){
-                                printerwert = content[printername].heatedBeds[i].output;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Istwerte.Heizbed_' + (i+1) +'_Heizleistung';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Heizleistung Heizbed ' + (i + 1), 'number', true, false, '%', 'value.value', printerwert.toFixed(0));
-                            }
-
-                            // TemperaturSollWerte der Heizbeden übergeben
-                            for (i=0 ; i < content[printername].heatedBeds.length; i++){
-                                printerwert = content[printername].heatedBeds[i].tempSet;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Sollvorgaben.Heizbed_' + (i+1) +'_Temperatur';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Solltemperatur Heizbed ' + (i + 1), 'number', true, false, '°C', 'value.temperature.setpoint', printerwert);
-                            }
-                            
-                            // TemperaturIstWerte der Heizkammern übergeben
-                            for (i=0 ; i < content[printername].heatedChambers.length; i++){
-                                printerwert = content[printername].heatedChambers[i].tempRead;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Istwerte.Heizkammer_' + (i+1) +'_Temperatur';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Temperaturwert Heizkammer ' + (i + 1), 'number', true, false, '°C', 'value.temperature', printerwert.toFixed(1));
-                            }
-
-                            // HeizleistungIstWerte der Heizkammern übergeben
-                            for (i=0 ; i < content[printername].heatedChambers.length; i++){
-                                printerwert = content[printername].heatedChambers[i].output;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Istwerte.Heizkammer_' + (i+1) +'_Heizleistung';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Heizleistung Heizkammer ' + (i + 1), 'number', true, false, '%', 'value.value', printerwert.toFixed(0));
-                            }
-
-                            // TemperaturSollWerte der Heizkammern übergeben
-                            for (i=0 ; i < content[printername].heatedChambers.length; i++){
-                                printerwert = content[printername].heatedChambers[i].tempSet;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Sollvorgaben.Heizkammer_' + (i+1) +'_Temperatur';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Solltemperatur Heizkammer ' + (i + 1), 'number', true, false, '°C', 'value.temperature.setpoint', printerwert.toFixed(0));
-                            }
-
-                            // Lüfter Ein übergeben
-                            for (i=0 ; i < content[printername].fans.length; i++){
-                                printerwert = content[printername].fans[i].on;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Lüfter_' + (i+1) +'_Eingeschaltet';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Lüfter ' + (i + 1) + ' eingeschaltet', 'boolean', true, false, '', 'switch.power', printerwert);
-                            }
-
-                            // Lüfter Output übergeben
-                            for (i=0 ; i < content[printername].fans.length; i++){
-                                printerwert = content[printername].fans[i].voltage;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Istwerte.Lüfter_' + (i+1) +'_Drehzahl';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Lüfter ' + (i + 1) + ' Drehzahl in %', 'number', true, false, '%', 'value.value', ((printerwert/255)*100).toFixed(0));
-                            }
-
-                            // Materialfluss % --> PrintJob
-                            printerwert = content[printername].flowMultiply;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Materialfluss';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Materialfluss in %', 'number', true, false, '%', 'value.flow', printerwert.toFixed(0));
-
-                            // Druckgeschwindigkeit % --> PrintJob
-                            printerwert = content[printername].speedMultiply;
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckgeschwindigkeit';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit in %', 'number', true, false, '%', 'value.speed', printerwert.toFixed(0));
-
-                            // prüfen, ob Druck läuft
-                            printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Drucker_druckt';
-                            tadapter.getState(printerdatenpfad, function(err, state){
-                                tdruck_laeuft = state.val
-
-                                // aktuell läuft ein Druck
-                                if (tdruck_laeuft == true){
-
-                                    // Aktueller Layer --> PrintJob
-                                    printerwert = content[printername].layer;
-                                    printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Layer_Aktuell';
-                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Layer wird aktuell erstellt', 'number', true, false, '', 'value', printerwert);
+                                // Printername aus Content suchen
+                                for (let pp = 0; pp < aprinter.length; pp++){
+                                    if (content.hasOwnProperty(aprinter[pp]) == true){
+                                        // Printername übergeben
+                                        fprintername = aprinter[pp];
+                                        
+                                        // gefunden -> raus
+                                        break;  
+                                    }
                                 }
-                            });              
+
+                                if (content && content.hasOwnProperty(fprintername)){
+                    
+                                    // temporäre Variable, ob Druck läuft
+                                    let tdruck_laeuft = false;
+
+                                    // Firmware --> Info
+                                    printerwert = content[fprintername].firmware; 
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Info.Firmware';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Firmware des Druckers', 'string', true, false, '', 'info', printerwert);
+                                    
+                                    // Anzahl Extruder --> Info
+                                    printerwert = content[fprintername].extruder.length;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Info.Extruderanzahl';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Extruder', 'number', true, false, '', 'info', printerwert);
+
+                                    // Anzahl Heizbeden --> Info
+                                    printerwert = content[fprintername].heatedBeds.length;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Info.Heizbedanzahl';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Heizbeden', 'number', true, false, '', 'info', printerwert);
+
+                                    // Anzahl Lüfter --> Info
+                                    printerwert = content[fprintername].fans.length; 
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Info.Lüfteranzahl';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Lüfter', 'number', true, false, '', 'info', printerwert);
+
+                                    // Anzahl Heizkammern --> Info
+                                    printerwert = content[fprintername].heatedChambers.length; 
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Info.Heizkammern';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Heizkammern', 'number', true, false, '', 'info', printerwert);
+
+                                    // X-Position --> Positionen
+                                    printerwert = content[fprintername].x;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Koordinaten.Position_X';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'X-Position', 'number', true, false, 'mm', 'value', printerwert.toFixed(3));
+                                    
+                                    // Y-Position --> Positionen
+                                    printerwert = content[fprintername].y;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Koordinaten.Position_Y';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Y-Position', 'number', true, false, 'mm', 'value', printerwert.toFixed(3));
+
+                                    // Z-Position --> Positionen
+                                    printerwert = content[fprintername].z;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Koordinaten.Position_Z';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Z-Position', 'number', true, false, 'mm', 'value', printerwert.toFixed(3));
+
+                                    // X-Homing --> Homing
+                                    printerwert = content[fprintername].hasXHome;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Homing.Achse_X';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Referenzfahrt X-Achse erfolgt', 'boolean', true, false, '', 'value', printerwert);
+
+                                    // Y-Homing --> Homing
+                                    printerwert = content[fprintername].hasYHome;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Homing.Achse_Y';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Referenzfahrt Y-Achse erfolgt', 'boolean', true, false, '', 'value', printerwert);
+
+                                    // Z-Homing --> Homing
+                                    printerwert = content[fprintername].hasZHome;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Homing.Achse_Z';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Referenzfahrt Z-Achse erfolgt', 'boolean', true, false, '', 'value', printerwert);
+
+                                    // Druckertür --> Status
+                                    printerwert = content[fprintername].doorOpen;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Tür_geöffnet';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Tür zum Drucker geöffnet', 'boolean', true, false, '', 'value', printerwert);
+
+                                    // Power Ein (M80) --> Status
+                                    printerwert = content[fprintername].powerOn;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Power_Ein';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Power (M80) eingeschaltet', 'boolean', true, false, '', 'switch.power', printerwert);
+
+                                    // Lichter --> Status
+                                    printerwert = content[fprintername].lights;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Lichter';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Lichter eingeschaltet (Versuch)', 'number', true, false, '', 'value', printerwert);
+
+                                    // Aktiver Extruder --> Status
+                                    printerwert = content[fprintername].activeExtruder;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Aktiver_Extruder';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'aktuell aktiver Extruder', 'number', true, false, '', 'info.status', printerwert);
+
+                                    // TemperaturIstWerte der Extruder übergeben
+                                    for (i=0 ; i < content[fprintername].extruder.length; i++){
+                                        printerwert = content[fprintername].extruder[i].tempRead;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte.Extruder_' + (i+1) +'_Temperatur';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Temperaturwert Extruder ' + (i + 1), 'number', true, false, '°C', 'value.temperature', printerwert.toFixed(1));
+                                    }
+
+                                    // HeizleistungIstWerte der Extruder übergeben
+                                    for (i=0 ; i < content[fprintername].extruder.length; i++){
+                                        printerwert = content[fprintername].extruder[i].output;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte.Extruder_' + (i+1) +'_Heizleistung';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Heizleistung Extruder ' + (i + 1), 'number', true, false, '%', 'value.value', printerwert.toFixed(0));
+                                    }
+
+                                    // TemperaturSollWerte der Extruder übergeben
+                                    for (i=0 ; i < content[fprintername].extruder.length; i++){
+                                        printerwert = content[fprintername].extruder[i].tempSet;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Sollvorgaben.Extruder_' + (i+1) +'_Temperatur';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Solltemperatur Extruder ' + (i + 1), 'number', true, false, '°C', 'value.temperature.setpoint', printerwert);
+                                    }
+
+                                    // Fehlerstatus der Extruder übergeben --> Error
+                                    for (i=0 ; i < content[fprintername].extruder.length; i++){
+                                        printerwert = content[fprintername].extruder[i].error;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Error.Extruder_' + (i+1) +'_Error';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Fehlerstatus Extruder ' + (i + 1), 'boolean', true, false, '', 'info.status', printerwert);
+                                    }
+                                    
+                                    // TemperaturIstWerte der Heizbeden übergeben
+                                    for (i=0 ; i < content[fprintername].heatedBeds.length; i++){
+                                        printerwert = content[fprintername].heatedBeds[i].tempRead;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte.Heizbed_' + (i+1) +'_Temperatur';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Temperaturwert Heizbed ' + (i + 1), 'number', true, false, '°C', 'value.temperature', printerwert.toFixed(1));
+                                    }
+
+                                    // HeizleistungIstWerte der Heizbeden übergeben
+                                    for (i=0 ; i < content[fprintername].heatedBeds.length; i++){
+                                        printerwert = content[fprintername].heatedBeds[i].output;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte.Heizbed_' + (i+1) +'_Heizleistung';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Heizleistung Heizbed ' + (i + 1), 'number', true, false, '%', 'value.value', printerwert.toFixed(0));
+                                    }
+
+                                    // TemperaturSollWerte der Heizbeden übergeben
+                                    for (i=0 ; i < content[fprintername].heatedBeds.length; i++){
+                                        printerwert = content[fprintername].heatedBeds[i].tempSet;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Sollvorgaben.Heizbed_' + (i+1) +'_Temperatur';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Solltemperatur Heizbed ' + (i + 1), 'number', true, false, '°C', 'value.temperature.setpoint', printerwert);
+                                    }
+                                    
+                                    // Fehlerstatus der Heizbeden übergeben --> Error
+                                    for (i=0 ; i < content[fprintername].heatedBeds.length; i++){
+                                        printerwert = content[fprintername].heatedBeds[i].error;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Error.Heizbed_' + (i+1) +'_Error';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Fehlerstatus Heizbed ' + (i + 1), 'boolean', true, false, '', 'info.status', printerwert);
+                                    }
+
+                                    // TemperaturIstWerte der Heizkammern übergeben
+                                    for (i=0 ; i < content[fprintername].heatedChambers.length; i++){
+                                        printerwert = content[fprintername].heatedChambers[i].tempRead;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte.Heizkammer_' + (i+1) +'_Temperatur';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Temperaturwert Heizkammer ' + (i + 1), 'number', true, false, '°C', 'value.temperature', printerwert.toFixed(1));
+                                    }
+
+                                    // HeizleistungIstWerte der Heizkammern übergeben
+                                    for (i=0 ; i < content[fprintername].heatedChambers.length; i++){
+                                        printerwert = content[fprintername].heatedChambers[i].output;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte.Heizkammer_' + (i+1) +'_Heizleistung';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Heizleistung Heizkammer ' + (i + 1), 'number', true, false, '%', 'value.value', printerwert.toFixed(0));
+                                    }
+
+                                    // TemperaturSollWerte der Heizkammern übergeben
+                                    for (i=0 ; i < content[fprintername].heatedChambers.length; i++){
+                                        printerwert = content[fprintername].heatedChambers[i].tempSet;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Sollvorgaben.Heizkammer_' + (i+1) +'_Temperatur';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Solltemperatur Heizkammer ' + (i + 1), 'number', true, false, '°C', 'value.temperature.setpoint', printerwert.toFixed(0));
+                                    }
+
+                                    // Lüfter Ein übergeben
+                                    for (i=0 ; i < content[fprintername].fans.length; i++){
+                                        printerwert = content[fprintername].fans[i].on;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Lüfter_' + (i+1) +'_Eingeschaltet';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Lüfter ' + (i + 1) + ' eingeschaltet', 'boolean', true, false, '', 'switch.power', printerwert);
+                                    }
+
+                                    // Lüfter Output übergeben
+                                    for (i=0 ; i < content[fprintername].fans.length; i++){
+                                        printerwert = content[fprintername].fans[i].voltage;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte.Lüfter_' + (i+1) +'_Drehzahl';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Lüfter ' + (i + 1) + ' Drehzahl in %', 'number', true, false, '%', 'value.value', ((printerwert/255)*100).toFixed(0));
+                                    }
+
+                                    // Materialfluss % --> PrintJob
+                                    printerwert = content[fprintername].flowMultiply;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Materialfluss';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Materialfluss in %', 'number', true, false, '%', 'value.flow', printerwert.toFixed(0));
+
+                                    // Druckgeschwindigkeit % --> PrintJob
+                                    printerwert = content[fprintername].speedMultiply;
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Druckgeschwindigkeit';
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit in %', 'number', true, false, '%', 'value.speed', printerwert.toFixed(0));
+
+                                    // prüfen, ob Druck läuft
+                                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Drucker_druckt';
+                                    tadapter.getState(printerdatenpfad, function(err, state){
+                                        tdruck_laeuft = state.val
+
+                                        // aktuell läuft ein Druck
+                                        if (tdruck_laeuft == true){
+
+                                            // Aktueller Layer --> PrintJob
+                                            printerwert = content[fprintername].layer;
+                                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Layer_Aktuell';
+                                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Layer wird aktuell erstellt', 'number', true, false, '', 'value', printerwert);
+                                        }
+                                    });              
+                                }
+                            }
                         }
-                    }
+                    );
                 }
-            );
-        }
+            }
+        } 
     }
 
     // Funktion erneut nach x Sekunden aufrufen
@@ -804,177 +1025,379 @@ function refreshState(tadapter, refreshtime){
     tou5 = setTimeout(() => {
         refreshState(tadapter, refreshtime);
     }, refreshtime);
+
 }
 
 // PrintJob-Daten aktualisieren
-function refreshPrintJob(tadapter, refreshtime)
-{
-    if (aprinter.length > 0){
+function refreshPrintJob(tadapter, refreshtime){
+    
+    // Hilfsvariablen
+    let tStd = '' ; 
+    let tMin = '' ;
+    let tRStd = '';
+    let tRMin = '';
+    let fprintername = '';
 
-        // Über alle Printer
-        for (let p = 0; p < printercnt; p++) {
+    // Durchlauf erst nach Printerauswertung
+    if (printerauswertung == true){
 
-            // Printername 
-            printername = aprinter[p];
+        // Mehr als 1 Printer vorhanden
+        if (aprinter.length > 0){
+
+            // Über alle Printer
+            for (let p = 0; p < aprinter.length; p++) {
+
+                // Printername 
+                fprintername = aprinter[p];
+
+                // Printername vorhanden
+                if (fprintername){
+                
+                    // Abfrage und Auswertung
+                    request(
+                        {
+                            url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + fprintername + '?a=listPrinter&data&apikey=' + repetierApi,
+                            json: true
+                        },
+
+                        function (error, response, content){
+                    
+                            if (!error && response.statusCode == 200){
+                            
+                                if (content && content.hasOwnProperty(0)){
+                                    
+                                    // Printername aus Content übernehmen
+                                    fprintername = content[0].name;
+
+                                    //Wenn nicht gedruckt wird, keine Anfrage der Zeiten, da im JSON nicht vorhanden
+                                    if(content[0].job !== 'none'){
+
+                                        // Druckteilname --> PrintJob
+                                        printerwert = content[0].job;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Druckteilname';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Name des Druckteils', 'string', true, false, '', 'info.name', printerwert);
+                                        
+                                        // Druckbeginn --> PrintJob
+                                        printerwert = new Date(content[0].printStart * 1000);
+                                        tStd = ('00' + printerwert.getHours().toString()).substr(-2);
+                                        tMin = ('00' + printerwert.getMinutes().toString()).substr(-2);
+                                        printerwert = tStd + ':' + tMin;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Uhrzeit_Start';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit bei Druckstart', 'string', true, false, 'Uhr', 'info.time', printerwert);
+
+                                        // Gesamtdruckzeit --> PrintJob
+                                        printerwert =  Math.round (1 * content[0].printTime / 60);
+                                        tStd = (Math.floor(printerwert / 60));
+                                        tMin = (printerwert - (tStd * 60));
+                                        tStd = ('00' + tStd.toString()).substr(-2);
+                                        tMin = ('00' + tMin.toString()).substr(-2);
+                                        printerwert = tStd + ':' + tMin;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Gesamtdruckzeit';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Gesamtdruckzeit', 'string', true, false, 'Std.', 'info.time', printerwert);
+
+                                        // Restzeit --> PrintJob
+                                        printerwert = Math.round ((1 * content[0].printTime.toFixed(2) / 60)-(1 * content[0].printedTimeComp / 60));
+                                        tRStd = (Math.floor(printerwert / 60));
+                                        tRMin = (printerwert - (tRStd * 60));
+                                        tStd = ('00' + tRStd.toString()).substr(-2);
+                                        tMin = ('00' + tRMin.toString()).substr(-2);
+                                        printerwert = tStd + ':' + tMin;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Restzeit';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Restzeit bis Druckende', 'string', true, false, 'Std.', 'info.time', printerwert);
+
+                                        // Fertigzeit --> PrintJob
+                                        printerwert = new Date();
+                                        printerwert.setHours(printerwert.getHours() + tRStd);
+                                        printerwert.setMinutes(printerwert.getMinutes() + tRMin);
+                                        tStd = ('00' + printerwert.getHours().toString()).substr(-2);
+                                        tMin = ('00' + printerwert.getMinutes().toString()).substr(-2);
+                                        printerwert = tStd + ':' + tMin;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Uhrzeit_Fertig';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit wenn Druck fertig', 'string', true, false, 'Uhr', 'info.time', printerwert);
+
+                                        // Fortschritt in % --> PrintJob
+                                        printerwert = content[0].done.toFixed(2);
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Druckfortschritt';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckfortschritt in %', 'string', true, false, '%', 'info.status', printerwert);
+
+                                        // Anzahl Layer --> PrintJob
+                                        printerwert = content[0].ofLayer;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Layer_Gesamt';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Layer', 'number', true, false, '', 'info.status', printerwert);
+
+                                        // Anzahl Lines --> PrintJob
+                                        printerwert = content[0].totalLines;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Linien_Gesamt';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Gesamtanzahl der Linien', 'number', true, false, '', 'info.status', printerwert);
+
+                                        // Gesendete Lines --> PrintJob
+                                        printerwert = content[0].linesSend;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Linien_gesendet';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'An Drucker gesendete Linien', 'number', true, false, '', 'info.status', printerwert);
+
+                                        // Druckpause --> Status
+                                        printerwert = content[0].paused;
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Druckpause';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker im Pausenmodus', 'boolean', true, false, '', 'info.status', printerwert);
+
+                                        // Druck läuft --> PrintJob
+                                        if (content[0].done.toFixed(2) > 0){
+                                            printerwert = true;
+                                        }
+                                        else{
+                                            printerwert = false;
+                                        }
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Drucker_druckt';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status', printerwert);
+                                        
+                                        // Drucker druckt in Array schreiben
+                                        SetPrinterPrinted(fprintername, printerwert);
+
+                                    }
+
+                                    // Wenn Druckteil fertig, dann Zeiten/Werte löschen 
+                                    if(content[0].job === 'none'){
+
+                                        // Druckteilname --> PrintJob
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Druckteilname';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Name des Druckteils', 'string', true, false, '', 'info.name', '---');
+                                        
+                                        // Anzahl Layer --> PrintJob
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Layer_Gesamt';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Layer', 'number', true, false, '', 'info.status', 0);
+                                                                    
+                                        // Anzahl Lines --> PrintJob
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Linien_Gesamt';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Gesamtanzahl der Linien', 'number', true, false, '', 'info.status', 0);
+                                        
+                                        // Gesendete Lines --> PrintJob
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Linien_gesendet';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'An Drucker gesendete Linien', 'number', true, false, '', 'info.status', 0);
+                                        
+                                        // Druckpause --> Status
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Druckpause';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker im Pausenmodus', 'boolean', true, false, '', 'info.status', false);
+
+                                        // Gesamtdruckzeit
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Gesamtdruckzeit';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Gesamtdruckzeit', 'string', true, false, 'Std.', 'info.time', '--:--');
+                                        
+                                        // Uhrzeit Druckbeginn                                
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Uhrzeit_Start';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit bei Druckstart', 'string', true, false, 'Uhr', 'info.time', '--:--');
+
+                                        // Restzeit
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Restzeit';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Restzeit bis Druckende', 'string', true, false, 'Std.', 'info.time', '--:--');
+
+                                        // Uhrzeit Druckende
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Uhrzeit_Fertig';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit wenn Druck fertig', 'string', true, false, 'Uhr', 'info.time', '--:--');
+
+                                        // Aktueller Layer --> PrintJob
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Layer_Aktuell';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Layer wird aktuell erstellt', 'number', true, false, '', 'value', 0);
+
+                                        // Fortschritt
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Druckfortschritt';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckfortschritt in %', 'string', true, false, '%', 'info.status', '---');
+                                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Drucker_druckt';
+                                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status', false);
+
+                                        // Drucker druckt in Array schreiben
+                                        SetPrinterPrinted(fprintername, false);
+                                    }                                
+                                }
+                            }
+                        }
+                    );
+                }
+            }
+        }
+    }
+    // Funktion erneut nach x Sekunden aufrufen
+    clearTimeout(tou6);
+    tou6 = setTimeout(() => {
+        refreshPrintJob(tadapter, refreshtime);
+    }, refreshtime);
+
+}
+
+// Erstmalige Einlesen aller Druckermodel nach Adapterstart
+function RefreshModelInit(tadapter, ModelEnable, refreshtime){
+
+    // Hilfsvariablen
+    let fprintername = '';
+
+    // Model-Management enable
+    if (ModelEnable == true){
+
+        // TempVariable
+        let erl = false;
+
+        // Durchlauf erst nach Printerauswertung
+        if (printerauswertung == true){
+
+            // Mehr als 1 Printer vorhanden
+            if (aprinter.length > 0){
+
+                // Über alle Printer
+                for (let p = 0; p < aprinter.length; p++) {
+
+                    // Printername 
+                    fprintername = aprinter[p];
+
+                    // Printername vorhanden
+                    if (fprintername){
+                        
+                        // Modelle einlesen
+                        refreshModel(tadapter, fprintername);
+                    }
+                }
+            }
+            // Durchlauf erledigt
+            erl=true;
+        }
+
+        // Funktion erneut nach x Sekunden aufrufen, wenn noch nicht erledigt
+        if (erl == false){
+            clearTimeout(tou8);
+            tou8 = setTimeout(() => {
+                RefreshModelInit(tadapter, ModelEnable, refreshtime);
+            }, refreshtime);
+        }
+        // wenn erledigt, dann nicht mehr aufrufen
+        else{
+            clearTimeout(tou8);
+        }
+    }
+}
+
+// 3D-Modelle (G-Code-Objecte) einlesen
+function refreshModel(tadapter, fprintername){
+ 
+    // Hilfsvariablen für Modelanzahl
+    let tanz = 0;
+
+    // Durchlauf erst nach Printerauswertung
+    if (printerauswertung == true){
+
+        // Printername vorhanden
+        if (fprintername){
 
             // Abfrage und Auswertung
             request(
                 {
-                    url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + printername + '?a=listPrinter&data&apikey=' + repetierApi,
+                    url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + fprintername + '?a=listModels&apikey=' + repetierApi,
                     json: true
                 },
-
                 function (error, response, content){
-            
+
                     if (!error && response.statusCode == 200){
-                    
-                        if (content && content.hasOwnProperty(0)){
 
-                            //Wenn nicht gedruckt wird, keine Anfrage der Zeiten, da im JSON nicht vorhanden
-                            if(content[0].job !== 'none'){
+                        // Modelanzahl ermitteln
+                        tanz = content.data.length
 
-                                // Druckteilname --> PrintJob
-                                printerwert = content[0].job;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckteilname';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Name des Druckteils', 'string', true, false, '', 'info.name', printerwert);
-                                
-                                // Druckbeginn --> PrintJob
-                                printerwert = new Date(content[0].printStart * 1000);
-                                tStd = ('00' + printerwert.getHours().toString()).substr(-2);
-                                tMin = ('00' + printerwert.getMinutes().toString()).substr(-2);
-                                printerwert = tStd + ':' + tMin;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Uhrzeit_Start';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit bei Druckstart', 'string', true, false, 'Uhr', 'info.time', printerwert);
+                        if (tanz > 0){
+            
+                            // Array vorbereiten
+                            ModelArrayClean(fprintername);
 
-                                // Gesamtdruckzeit --> PrintJob
-                                printerwert =  Math.round (1 * content[0].printTime / 60);
-                                tStd = (Math.floor(printerwert / 60));
-                                tMin = (printerwert - (tStd * 60));
-                                tStd = ('00' + tStd.toString()).substr(-2);
-                                tMin = ('00' + tMin.toString()).substr(-2);
-                                printerwert = tStd + ':' + tMin;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Gesamtdruckzeit';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Gesamtdruckzeit', 'string', true, false, 'Std.', 'info.time', printerwert);
+                            // Alle Modelle einlesen
+                            printerwert = '';
+                            for (let t = 0; t < tanz; t++) {
 
-                                // Restzeit --> PrintJob
-                                printerwert = Math.round ((1 * content[0].printTime.toFixed(2) / 60)-(1 * content[0].printedTimeComp / 60));
-                                tRStd = (Math.floor(printerwert / 60));
-                                tRMin = (printerwert - (tRStd * 60));
-                                tStd = ('00' + tRStd.toString()).substr(-2);
-                                tMin = ('00' + tRMin.toString()).substr(-2);
-                                printerwert = tStd + ':' + tMin;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Restzeit';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Restzeit bis Druckende', 'string', true, false, 'Std.', 'info.time', printerwert);
+                                // Neues mehrdimmensionales Array anlegen
+                                let newnr = amodelle.length; // nächste freie Nummer festlegen
+                                amodelle [newnr]= new Object;
+                                amodelle [newnr] ["Printer"] = fprintername;
+                                amodelle [newnr] ["ID"] = content.data[t].id;
+                                amodelle [newnr] ["Name"] = content.data[t].name;
+                                amodelle [newnr] ["intNr"] = t;
+                                amodelle [newnr] ["Gruppe"] = content.data[t].group;
 
-                                // Fertigzeit --> PrintJob
-                                printerwert = new Date();
-                                printerwert.setHours(printerwert.getHours() + tRStd);
-                                printerwert.setMinutes(printerwert.getMinutes() + tRMin);
-                                tStd = ('00' + printerwert.getHours().toString()).substr(-2);
-                                tMin = ('00' + printerwert.getMinutes().toString()).substr(-2);
-                                printerwert = tStd + ':' + tMin;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Uhrzeit_Fertig';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit wenn Druck fertig', 'string', true, false, 'Uhr', 'info.time', printerwert);
-
-                                // Fortschritt in % --> PrintJob
-                                printerwert = content[0].done.toFixed(2);
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckfortschritt';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckfortschritt in %', 'string', true, false, '%', 'info.status', printerwert);
-
-                                // Anzahl Layer --> PrintJob
-                                printerwert = content[0].ofLayer;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Layer_Gesamt';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Layer', 'number', true, false, '', 'info.status', printerwert);
-
-                                // Anzahl Lines --> PrintJob
-                                printerwert = content[0].totalLines;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Linien_Gesamt';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Gesamtanzahl der Linien', 'number', true, false, '', 'info.status', printerwert);
-
-                                // Gesendete Lines --> PrintJob
-                                printerwert = content[0].linesSend;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Linien_gesendet';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'An Drucker gesendete Linien', 'number', true, false, '', 'info.status', printerwert);
-
-                                // Druckpause --> Status
-                                printerwert = content[0].paused;
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Druckpause';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker im Pausenmodus', 'boolean', true, false, '', 'info.status', printerwert);
-
-                                // Druck läuft --> PrintJob
-                                if (content[0].done.toFixed(2) > 0){
-                                    printerwert = true;
-                                }
-                                else{
-                                    printerwert = false;
-                                }
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Drucker_druckt';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status', printerwert);
-    
+                                // Verzeichnis
+                                printerwert = printerwert + t + ':' + content.data[t].name + '/' + content.data[t].group + ';';
                             }
+                            printerwert = printerwert.substring(0, printerwert.length-1);
 
-                            // Wenn Druckteil fertig, dann Zeiten/Werte löschen 
-                            if(content[0].job === 'none'){
-
-                                // Druckteilname --> PrintJob
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckteilname';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Name des Druckteils', 'string', true, false, '', 'info.name', '---');
-                                
-                                // Anzahl Layer --> PrintJob
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Layer_Gesamt';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Anzahl der Layer', 'number', true, false, '', 'info.status', 0);
-                                                            
-                                // Anzahl Lines --> PrintJob
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Linien_Gesamt';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Gesamtanzahl der Linien', 'number', true, false, '', 'info.status', 0);
-                                
-                                // Gesendete Lines --> PrintJob
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Linien_gesendet';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'An Drucker gesendete Linien', 'number', true, false, '', 'info.status', 0);
-                                
-                                // Druckpause --> Status
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Druckpause';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker im Pausenmodus', 'boolean', true, false, '', 'info.status', false);
-
-                                // Gesamtdruckzeit
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Gesamtdruckzeit';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Gesamtdruckzeit', 'string', true, false, 'Std.', 'info.time', '--:--');
-                                
-                                // Uhrzeit Druckbeginn                                
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Uhrzeit_Start';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit bei Druckstart', 'string', true, false, 'Uhr', 'info.time', '--:--');
-
-                                // Restzeit
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Restzeit';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Restzeit bis Druckende', 'string', true, false, 'Std.', 'info.time', '--:--');
-
-                                // Uhrzeit Druckende
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Uhrzeit_Fertig';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Uhrzeit wenn Druck fertig', 'string', true, false, 'Uhr', 'info.time', '--:--');
-
-                                 // Aktueller Layer --> PrintJob
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Layer_Aktuell';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Layer wird aktuell erstellt', 'number', true, false, '', 'value', 0);
-
-                                // Fortschritt
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.PrintJob.Druckfortschritt';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckfortschritt in %', 'string', true, false, '%', 'info.status', '---');
-                                printerdatenpfad = printerpath + 'Printer_' + printername + '.Status.Drucker_druckt';
-                                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status', false);
-
-                            }                                
+                            // Modelle --> Model
+                            printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintModel.Modelle';
+                            tadapter.setObjectNotExists(printerdatenpfad,{
+                                type: 'state',
+                                common:
+                                {
+                                    name:   'Modelle (Name, Gruppe)',
+                                    type:   'number',
+                                    read:   true,
+                                    write:  true,
+                                    role:   'value.indicator',
+                                    states: printerwert,   // <-- Werteliste
+                                    def:    0,
+                                    min:    0,
+                                    max:    100
+                                },
+                                native: {}
+                            });
+                            tadapter.extendObject(printerdatenpfad,{common: {states: printerwert}});
+                            tadapter.setState(printerdatenpfad, {val: 0, ack: true});
+                            PrinterMessage(tadapter, fprintername + " -> Modelupdate durchgeführt")
+                        
                         }
                     }
                 }
             );
         }
     }
+}
 
-    // Funktion erneut nach x Sekunden aufrufen
-    clearTimeout(tou6);
-    tou6 = setTimeout(() => {
-        refreshPrintJob(tadapter, refreshtime);
-    }, refreshtime);
+// Printer über ioBroker starten
+function PrinterStart(tadapter, fprintername, refreshtime){
+             
+    // Hilfsvariablen
+    let erl = false ;
+
+    // aktuelle DruckteilID holen
+    let aktdruckid = GetModelIDPrinter(fprintername);
+
+    // Druckername und ModelID vorhanden
+    if (fprintername && aktdruckid){
+
+        // Startbefehl senden
+        request(
+            {
+                url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + fprintername + '?a=copyModel&data={"id":"'+ aktdruckid + '"}&apikey=' + repetierApi,
+            },
+            function (error, response, content){ 
+                if (error){
+                    // Fehler
+                    PrinterMessage(tadapter, fprintername + ' -> Druck wurde nicht gestartet - Error: ' + error);
+                }   
+                else{
+                    // Kein Fehler
+                    PrinterMessage(tadapter, fprintername + ' -> Druck wurde gestartet...');
+                }
+            }
+        );
+        // Durchlauf erledigt setzen
+        erl = true;
+    }   
+    else{
+        // Meldung ausgeben
+        PrinterMessage(tadapter, fprintername + ' -> Druckstart nicht möglich - Daten fehlen!');
+        erl = true;
+    }
+
+    // Funktion erneut nach x Sekunden aufrufen, wenn noch nicht erledigt
+    if (erl == false){
+        clearTimeout(tou9);
+        tou9 = setTimeout(() => {
+            PrinterStart(tadapter, fprintername, refreshtime);
+        }, refreshtime);    
+    }
+    else{
+        clearTimeout(tou9);
+    }
 }
 
 // *********************
@@ -988,6 +1411,103 @@ function PrinterUpdateButton(tadapter){
     DatenAusgabe(tadapter, printerpath + 'Printer_update', 'state', 'update Printers', 'boolean', true, true, '', 'button', false); 
 }
 
+// Startbutton initialisieren oder löschen
+function PrinterModelButtons(tadapter, InitDel, refreshtime){
+
+    // Hilfsvariablen
+    let fprintername = '';
+
+    // nur einmal durchlaufen
+    let erl = false;
+
+    // Durchlauf erst nach Printerauswertung
+    if (printerauswertung == true){
+
+        // Überhaupt Drucker vorhanden
+        if (aprinter.length > 0){
+
+            // über alle Drucker
+            for (let p = 0; p < aprinter.length; p++) {
+
+                // Printername
+                fprintername = aprinter[p];
+
+                // Printername vorhanden
+                if(fprintername){
+                    // Startbutton
+                    // Pfad aufbauen
+                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Start';
+
+                    // 'Start' anlegen wenn InitDel = true
+                    if (InitDel == true){
+                        // Startbutton anlegen
+                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker starten (ID erforderlich!)', 'boolean', true, true, '', 'button', false);
+                    }
+                    // sonst löschen
+                    else{
+                        DatenpunktLoeschen(tadapter, printerdatenpfad);
+                    }
+
+                    // ModelUpdateButton
+                    // Pfad aufbauen
+                    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintModel.Update';
+
+                    // 'Start' anlegen wenn InitDel = true
+                    if (InitDel == true){
+                        // Startbutton anlegen
+                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckmodelle neu einlesen', 'boolean', true, true, '', 'button', false);
+                    
+                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintModel.Modelle';
+                        tadapter.setObjectNotExists(printerdatenpfad,{
+                            type: 'state',
+                            common:
+                            {
+                                name:   'Modelle (Name, Gruppe)',
+                                type:   'number',
+                                read:   true,
+                                write:  true,
+                                role:   'value.indicator',
+                                states: '',   // <-- Werteliste
+                                def:    0,
+                                min:    0,
+                                max:    100
+                            },
+                            native: {}
+                        });
+                        tadapter.extendObject(printerdatenpfad,{common: {states: ''}});
+                        tadapter.setState(printerdatenpfad, {val: '?', ack: true});
+
+                    }
+                    // sonst löschen
+                    else{
+                        DatenpunktLoeschen(tadapter, printerdatenpfad);
+                    }
+
+                    // Datenpunkte PrintModel -> Modelle löschen wenn Model-Management aus
+                    if (InitDel == false){
+                        printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintModel.Modelle';
+                        DatenpunktLoeschen(tadapter, printerdatenpfad);
+                    }
+
+                    // Durchlauf erledigt
+                    erl = true;
+
+                }
+            }
+        }
+    }
+
+    // Funktion erneut nach x Sekunden aufrufen, wenn noch nicht erledigt
+    if (erl == false){
+        clearTimeout(tou7);
+        tou7 = setTimeout(() => {
+            PrinterModelButtons(tadapter, InitDel, refreshtime);
+        }, refreshtime);    
+    }
+    else{
+        clearTimeout(tou7);
+    }
+}
 
 // Updatebutton anlegen und initialisieren
 function PrinterMessage(tadapter, tMessage){
@@ -996,35 +1516,55 @@ function PrinterMessage(tadapter, tMessage){
     DatenAusgabe(tadapter, printerpath + 'Nachricht', 'state', 'Message Printers', 'string', true, true, '', 'text', tMessage); 
 }
 
-
 // Datenübergabe an ioBroker 
 function DatenAusgabe(tadapter, d_Pfad, d_Type, c_Name, c_Type, c_Read, c_Write, c_Unit, c_Role, d_Wert){
+
     tadapter.setObjectNotExists(d_Pfad,{
         type: d_Type,
         common:
         {
-            name:  c_Name,
-            type:  c_Type,
-            read:  c_Read,
-            write: c_Write,
-            unit:  c_Unit,
-            role:  c_Role
+            name:   c_Name,
+            type:   c_Type,
+            read:   c_Read,
+            write:  c_Write,
+            unit:   c_Unit,
+            role:   c_Role
         },
         native: {}
     });
+
     tadapter.setState(d_Pfad, {val: d_Wert, ack: true});
 }
 
+// Datenpunkt löschen
+function DatenpunktLoeschen(tadapter, d_pfad){
+
+    // Prüfen, ob Datenpunkt vorhanden
+    tadapter.getObject(d_pfad, function (err, obj){
+        
+        // wenn Fehler, dann Fehler ausgeben
+        if (err){
+            tadapter.log.error('Datenpunkt löschen fehlgeschlagen -> ' + err);
+        }
+
+        // kein Fehler und Object vorhanden, dann löschen
+        if (!err && obj){
+            tadapter.delObject(obj._id);
+       }
+   })
+}
 
 // Daten von ioBroker lesen
 function DatenEinlesen(tadapter, d_pfad){
 
     // Wert des Datenpunkts einlesen
     tadapter.getState(d_pfad, (err, state) => {
+
         // kein Fehler, dann Wert zurückgeben
         if (!err && state && state.val){
             return state.val;
         }
+
         // Fehler, dann interne Fehlermeldung zurückgeben
         else{
             tadapter.log.info('Lesefehler: ' + d_pfad);
@@ -1038,12 +1578,243 @@ function GCodeCheck(tadapter, G_Code){
 
     // Prüfen, og G-Code mit 'G', 'M', 'T', oder '@' beginnt
     if (G_Code.substr(0,1)=='G' || G_Code.substr(0,1)=='M' || G_Code.substr(0,1)=='T' || G_Code.substr(0,1)=='@'){
+
         PrinterMessage(tadapter, 'G-Code übernommen');
         return true;    // Prüfung bestanden, dann 'true' zurück
     }
-    else
-    {
+    else{
+
         PrinterMessage(tadapter, rGcodeUnbekannt);
         return false;   // sonst 'false' als Rückgabewert
     }
+}
+
+// Modelarray aufräumen
+function ModelArrayClean(fprintername){
+
+    // Printername vorhanden
+    if (fprintername && amodelle.length > 0){
+
+        // Eintrag mit Printername suchen und löschen
+        for (let p = amodelle.length-1; p >= 0; p--) {
+            if (amodelle[p]["Printer"] == fprintername){
+                amodelle.splice(p, 1);
+            }
+        }
+    }
+}
+
+// aktive ModelID setzen
+function SetModelIDPrinter(fprintername, id){
+
+    // Variable Drucker gefunden
+    let gef = false;
+
+    // Werte vorhanden und gültig
+    if (fprintername && id){
+
+        // über alle Drucker suchen
+        for (let p = 0; p < aaktdruckid.length; p++){
+
+            // Drucker gefunden
+            if (aaktdruckid[p]["Printer"] == fprintername){
+                aaktdruckid[p]["ModelID"] = id;
+                
+                // gefunden merken
+                gef = true; 
+
+                // und raus
+                break;
+            }
+        }
+        // nicht gefunden - dann anlegen
+        if (gef == false){
+            let newnr = aaktdruckid.length;
+            aaktdruckid[newnr]=new Object;
+            aaktdruckid[newnr]["Printer"] = fprintername;
+            aaktdruckid[newnr]["ModelID"] = id;
+            //aaktdruckidcnt=aaktdruckidcnt+1
+        }
+    }
+}
+
+// aktive ModelID holen
+function GetModelIDPrinter(fprintername){
+     
+    // Werte vorhanden und gültig
+    if (fprintername){
+
+        // über alle Drucker suchen
+        for (let p = 0; p < aaktdruckid.length; p++){
+
+            // Drucker gefunden
+            if (aaktdruckid[p]["Printer"] == fprintername){
+                return aaktdruckid[p]["ModelID"];
+            }
+        }
+    }
+    // ungültiger Printername
+    else{
+        return -1;
+    }
+}
+
+// Printer aktiviert setzen
+function SetPrinterAktiv (fprintername, aktiv){
+
+    // Hilfsvariablen
+    let gef = false;
+
+    // Werte vorhanden und gültig
+    if (fprintername){
+
+        // über alle Drucker suchen
+        for (let p = 0; p < aprinterAktiv.length; p++){
+
+            // Drucker gefunden
+            if (aprinterAktiv[p]["Printer"] == fprintername){
+                aprinterAktiv[p]["Aktiviert"] = aktiv;
+                
+                // gefunden merken
+                gef = true; 
+
+                // und raus
+                break;
+            }
+        }
+        // nicht gefunden - dann anlegen
+        if (gef == false){
+            let newnr = aprinterAktiv.length;
+            aprinterAktiv[newnr]=new Object;
+            aprinterAktiv[newnr]["Printer"] = fprintername;
+            aprinterAktiv[newnr]["Aktiviert"] = aktiv;
+        }
+    }
+}
+
+// Printer aktiviert holen
+function GetPrinterAktiv (fprintername){
+
+    // Werte vorhanden und gültig
+    if (fprintername){
+
+        // über alle Drucker suchen
+        for (let p = 0; p < aprinterAktiv.length; p++){
+
+            // Drucker gefunden
+            if (aprinterAktiv[p]["Printer"] == fprintername){
+                return aprinterAktiv[p]["Aktiviert"];
+            }
+        }
+    }
+    // ungültiger Printername
+    else{
+        return -1;
+    }
+}
+
+// Printer druckt setzen
+function SetPrinterPrinted (fprintername, printed){
+
+    // Hilfsvariablen
+    let gef = false;
+
+    // Werte vorhanden und gültig
+    if (fprintername){
+
+        // über alle Drucker suchen
+        for (let p = 0; p < aprinterDruckt.length; p++){
+
+            // Drucker gefunden
+            if (aprinterDruckt[p]["Printer"] == fprintername){
+                aprinterDruckt[p]["druckt"] = printed;
+                
+                // gefunden merken
+                gef = true; 
+
+                // und raus
+                break;
+            }
+        }
+        // nicht gefunden - dann anlegen
+        if (gef == false){
+            let newnr = aprinterDruckt.length;
+            aprinterDruckt[newnr]=new Object;
+            aprinterDruckt[newnr]["Printer"] = fprintername;
+            aprinterDruckt[newnr]["druckt"] = printed;
+        }
+    }
+}
+
+// Printer druckt abfragen
+function GetPrinterPrinted (fprintername){
+
+    // Werte vorhanden und gültig
+    if (fprintername){
+
+        // über alle Drucker suchen
+        for (let p = 0; p < aprinterDruckt.length; p++){
+
+            // Drucker gefunden
+            if (aprinterDruckt[p]["Printer"] == fprintername){
+                return aprinterDruckt[p]["druckt"];
+            }
+        }
+    }
+    // ungültiger Printername
+    else{
+        return -1;
+    }
+}
+
+// info.connection/info.connected
+function info(tadapter, status){
+
+    // info.connection
+    tadapter.getState('info.connection', (err, state) => {
+
+        // kein Fehler, Wert vorhanden und Wert ungleich status
+        if (!err && state && state.val != status){
+            // dann ausgeben
+            tadapter.setState('info.connection', status, true);
+        }
+    });
+
+    // info.activeprinter
+    tadapter.getState('info.activeprinter', (err, state) => {
+        let aprint='';
+        for (let p = 0; p < aprinterAktiv.length; p++) {
+            if (aprinterAktiv[p]["Aktiviert"] == true){
+                aprint = aprint + aprinterAktiv[p]["Printer"] + '; ';
+            }
+        }
+    
+        // Sting anpassen
+        if (aprint.length >0 ){
+            aprint = aprint.substring(0, aprint.length-2);
+        }
+        // Ausgeben
+        if (aprint != state.val){
+            tadapter.setState('info.activeprinter', {val: aprint, ack: true});       
+        }
+    });
+
+    // info.activeprintjob
+    tadapter.getState('info.activeprintjob', (err, state) => {
+        let pprint='';
+        for (let p = 0; p < aprinterDruckt.length; p++) {
+            if (aprinterDruckt[p]["druckt"] == true){
+                pprint = pprint + aprinterDruckt[p]["Printer"] + '; ';
+            }
+        }
+    
+        // Sting anpassen
+        if (pprint.length >0 ){
+            pprint = pprint.substring(0, pprint.length-2);
+        }
+        // Ausgeben
+        if (pprint != state.val){
+            tadapter.setState('info.activeprintjob', {val: pprint, ack: true});       
+        }
+    });
 }
