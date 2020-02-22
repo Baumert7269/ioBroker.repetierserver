@@ -96,6 +96,32 @@
                 "def": false
             },
             "native": {}
+        },
+        {
+            "_id": "info.activeprinter",
+            "type": "state",
+            "common": {
+                "role": "text",
+                "name": "Names of the activated printers",
+                "type": "string",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.activeprintjob",
+            "type": "state",
+            "common": {
+                "role": "text",
+                "name": "Printer with active printjob",
+                "type": "string",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
         }
     ]
 }

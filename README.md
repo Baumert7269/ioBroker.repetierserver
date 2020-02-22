@@ -119,8 +119,11 @@ Some data points are only created when the 3D printer has been activated or the 
 
 * (Baumert7269) Bugfixes
   - fixed problem with 'Printer_undefined' when starting the adapter
+  - fixed problem with green instance indicator when no connention to Repetier-Server
 
 * (Baumert7269) io-package fields "connetionType" and "dataSource" integrated
+
+* (Baumert7269) Object 'info.active' and 'info.printjob' integrated
 
 * (Baumert7269) Code cleaned up and documented
 
