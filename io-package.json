@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "repetierserver",
-        "version": "0.0.2",
+        "version": "0.0.3",
         "news": {
             "0.0.2": {
                 "en": "ioBroker Adapter for RepetierServer - Server for 3D-printer",

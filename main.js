@@ -1772,49 +1772,54 @@ function info(tadapter, status){
 
     // info.connection
     tadapter.getState('info.connection', (err, state) => {
-
-        // kein Fehler, Wert vorhanden und Wert ungleich status
-        if (!err && state && state.val != status){
-            // dann ausgeben
-            tadapter.setState('info.connection', status, true);
+        if (state){
+            // kein Fehler, Wert vorhanden und Wert ungleich status
+            if (!err && state.val != status){
+                // dann ausgeben
+                tadapter.setState('info.connection', status, true);
+            }
         }
     });
 
     // info.activeprinter
     tadapter.getState('info.activeprinter', (err, state) => {
-        let aprint='';
-        for (let p = 0; p < aprinterAktiv.length; p++) {
-            if (aprinterAktiv[p]["Aktiviert"] == true){
-                aprint = aprint + aprinterAktiv[p]["Printer"] + '; ';
+        if (state){
+            let aprint='';
+            for (let p = 0; p < aprinterAktiv.length; p++) {
+                if (aprinterAktiv[p]["Aktiviert"] == true){
+                    aprint = aprint + aprinterAktiv[p]["Printer"] + '; ';
+                }
             }
-        }
     
-        // Sting anpassen
-        if (aprint.length >0 ){
-            aprint = aprint.substring(0, aprint.length-2);
-        }
-        // Ausgeben
-        if (aprint != state.val){
-            tadapter.setState('info.activeprinter', {val: aprint, ack: true});       
+            // Sting anpassen
+            if (aprint.length >0 ){
+                aprint = aprint.substring(0, aprint.length-2);
+            }
+            // Ausgeben
+            if (aprint != state.val){
+                tadapter.setState('info.activeprinter', {val: aprint, ack: true});       
+            }
         }
     });
 
     // info.activeprintjob
     tadapter.getState('info.activeprintjob', (err, state) => {
-        let pprint='';
-        for (let p = 0; p < aprinterDruckt.length; p++) {
-            if (aprinterDruckt[p]["druckt"] == true){
-                pprint = pprint + aprinterDruckt[p]["Printer"] + '; ';
+        if (state){
+            let pprint='';
+            for (let p = 0; p < aprinterDruckt.length; p++) {
+                if (aprinterDruckt[p]["druckt"] == true){
+                    pprint = pprint + aprinterDruckt[p]["Printer"] + '; ';
+                }
             }
-        }
     
-        // Sting anpassen
-        if (pprint.length >0 ){
-            pprint = pprint.substring(0, pprint.length-2);
-        }
-        // Ausgeben
-        if (pprint != state.val){
-            tadapter.setState('info.activeprintjob', {val: pprint, ack: true});       
+            // Sting anpassen
+            if (pprint.length >0 ){
+                pprint = pprint.substring(0, pprint.length-2);
+            }
+            // Ausgeben
+            if (pprint != state.val){
+                tadapter.setState('info.activeprintjob', {val: pprint, ack: true});       
+            }
         }
     });
 }
