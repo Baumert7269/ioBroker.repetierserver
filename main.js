@@ -227,7 +227,7 @@ class Template extends utils.Adapter {
                     switch(true){
 
                     // Druck Stopp
-                    case (id.search('Steuern.Signale.Stopp')> 0 && state.val == true):
+                    case (id.search('Steuern.Signale.Stopp') > 0 && state.val == true):
                         request(
                             {
                                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=stopJob&apikey=' + repetierApi,
@@ -238,7 +238,7 @@ class Template extends utils.Adapter {
                         break;
 
                     // Drucker NOT-STOP
-                    case (id.search('Steuern.Signale.NOTSTOP')> 0 && state.val == true):
+                    case (id.search('Steuern.Signale.NOTSTOP') > 0 && state.val == true):
                         request(
                             {
                                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=emergencyStop&apikey=' + repetierApi,
@@ -260,7 +260,7 @@ class Template extends utils.Adapter {
                         break; 
 
                     // Printer Deaktivieren
-                    case (id.search('Steuern.Signale.Deaktivieren')> 0 && state.val == true):
+                    case (id.search('Steuern.Signale.Deaktivieren') > 0 && state.val == true):
                         request(
                             {
                                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=deactivate&data={"printer":"' + tprintername + '"}&apikey=' + repetierApi,
@@ -271,7 +271,7 @@ class Template extends utils.Adapter {
                         break;
 
                     // Druck Pause
-                    case (id.search('Steuern.Signale.Pause')> 0 && state.val == true):
+                    case (id.search('Steuern.Signale.Pause') > 0 && state.val == true):
                         request(
                             {
                                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=send&data={"cmd":"@pause"}&apikey=' + repetierApi,
@@ -282,7 +282,7 @@ class Template extends utils.Adapter {
                         break;
                     
                     // Druck fortsetzen
-                    case (id.search('Steuern.Signale.Fortsetzen')> 0 && state.val == true):
+                    case (id.search('Steuern.Signale.Fortsetzen') > 0 && state.val == true):
                         request(
                             {
                                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=continueJob&apikey=' + repetierApi,
@@ -326,6 +326,14 @@ class Template extends utils.Adapter {
                                 url:  'http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=setSpeedMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi,
                             },    
                         );
+
+                        break;
+
+                    // Drucker aktiviert/deaktiviert
+                    case (id.search('Status.Aktiviert') > 0 ):
+
+                        // info.activeprinter neu ausgeben
+                        infoprinter(this);
 
                         break;
 
@@ -387,6 +395,9 @@ class Template extends utils.Adapter {
                             // Funktion ausfrufen
                             PrinterStart(this, tprintername, 2000);
                         }
+
+                        // info.activeprinter neu ausgeben
+                        infoprinter(this);
 
                         // state zurücksetzen
                         this.setState(id, {val: false, ack: true});
@@ -1767,59 +1778,52 @@ function GetPrinterPrinted (fprintername){
     }
 }
 
-// info.connection/info.connected
-function info(tadapter, status){
+// info.connection
+function info(tadapter, tserveronline){
 
     // info.connection
     tadapter.getState('info.connection', (err, state) => {
         if (state){
             // kein Fehler, Wert vorhanden und Wert ungleich status
-            if (!err && state.val != status){
+            if (!err && (state.val != tserveronline)){
                 // dann ausgeben
-                tadapter.setState('info.connection', status, true);
+                tadapter.setState('info.connection', tserveronline, true);
             }
         }
     });
+}
+
+// info.activeprinter und info.activeprintjob
+function infoprinter(tadapter){
 
     // info.activeprinter
-    tadapter.getState('info.activeprinter', (err, state) => {
-        if (state){
-            let aprint='';
-            for (let p = 0; p < aprinterAktiv.length; p++) {
-                if (aprinterAktiv[p]["Aktiviert"] == true){
-                    aprint = aprint + aprinterAktiv[p]["Printer"] + '; ';
-                }
-            }
-    
-            // Sting anpassen
-            if (aprint.length >0 ){
-                aprint = aprint.substring(0, aprint.length-2);
-            }
-            // Ausgeben
-            if (aprint != state.val){
-                tadapter.setState('info.activeprinter', {val: aprint, ack: true});       
-            }
+    // ******************
+    let aprint='';
+    for (let p = 0; p < aprinterAktiv.length; p++) {
+        if (aprinterAktiv[p]["Aktiviert"] == true){
+            aprint = aprint + aprinterAktiv[p]["Printer"] + '; ';
         }
-    });
+    }
+    // Sting anpassen
+    if (aprint.length >0 ){
+        aprint = aprint.substring(0, aprint.length-2);
+    }
+    // Ausgeben
+    DatenAusgabe(tadapter,'info.activeprinter', 'state', 'Names of activated printers', 'string', true, false, '', 'text', aprint)
+
 
     // info.activeprintjob
-    tadapter.getState('info.activeprintjob', (err, state) => {
-        if (state){
-            let pprint='';
-            for (let p = 0; p < aprinterDruckt.length; p++) {
-                if (aprinterDruckt[p]["druckt"] == true){
-                    pprint = pprint + aprinterDruckt[p]["Printer"] + '; ';
-                }
-            }
-    
-            // Sting anpassen
-            if (pprint.length >0 ){
-                pprint = pprint.substring(0, pprint.length-2);
-            }
-            // Ausgeben
-            if (pprint != state.val){
-                tadapter.setState('info.activeprintjob', {val: pprint, ack: true});       
-            }
+    // *******************
+    let pprint='';
+    for (let p = 0; p < aprinterDruckt.length; p++) {
+        if (aprinterDruckt[p]["druckt"] == true){
+            pprint = pprint + aprinterDruckt[p]["Printer"] + '; ';
         }
-    });
+    }
+    // Sting anpassen
+    if (pprint.length >0 ){
+        pprint = pprint.substring(0, pprint.length-2);
+    }
+    // Ausgeben
+    DatenAusgabe(tadapter,'info.activeprintjob', 'state', 'Printer with active printjob', 'string', true, false, '', 'text', pprint)
 }
