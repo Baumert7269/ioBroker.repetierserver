@@ -354,7 +354,7 @@ class Template extends utils.Adapter {
 
                                 // Modelname in Beschreibung des Startbuttons schreiben
                                 printerdatenpfad = printerpath + 'Printer_' + tprintername + '.Steuern.Signale.Start';
-                                let objName = 'Drucker >' + tprintername + '< starten (' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ')'
+                                let objName = 'PrintJob starten (' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ')'
                                 this.setObjectNotExists(printerdatenpfad,{
                                     type: 'state',
                                     common:
@@ -1798,32 +1798,43 @@ function infoprinter(tadapter){
 
     // info.activeprinter
     // ******************
-    let aprint='';
-    for (let p = 0; p < aprinterAktiv.length; p++) {
-        if (aprinterAktiv[p]["Aktiviert"] == true){
-            aprint = aprint + aprinterAktiv[p]["Printer"] + '; ';
+    tadapter.getstate('info.activeprinter', (err, state) => {
+        if (!err && state){
+            let aprint='';
+            for (let p = 0; p < aprinterAktiv.length; p++) {
+                if (aprinterAktiv[p]["Aktiviert"] == true){
+                    aprint = aprint + aprinterAktiv[p]["Printer"] + '; ';
+                }
+            }
+            // Sting anpassen
+            if (aprint.length >0 ){
+                aprint = aprint.substring(0, aprint.length-2);
+            }
+            // Ausgeben
+            if (state.val != aprint){
+                DatenAusgabe(tadapter,'info.activeprinter', 'state', 'Names of activated printers', 'string', true, false, '', 'text', aprint)
+            }
         }
-    }
-    // Sting anpassen
-    if (aprint.length >0 ){
-        aprint = aprint.substring(0, aprint.length-2);
-    }
-    // Ausgeben
-    DatenAusgabe(tadapter,'info.activeprinter', 'state', 'Names of activated printers', 'string', true, false, '', 'text', aprint)
-
+    });
 
     // info.activeprintjob
     // *******************
-    let pprint='';
-    for (let p = 0; p < aprinterDruckt.length; p++) {
-        if (aprinterDruckt[p]["druckt"] == true){
-            pprint = pprint + aprinterDruckt[p]["Printer"] + '; ';
+    tadapter.getstate('info.activeprinter', (err, state) => {
+        if (!err && state){
+            let pprint='';
+            for (let p = 0; p < aprinterDruckt.length; p++) {
+                if (aprinterDruckt[p]["druckt"] == true){
+                    pprint = pprint + aprinterDruckt[p]["Printer"] + '; ';
+                }
+            }
+            // Sting anpassen
+            if (pprint.length >0 ){
+                pprint = pprint.substring(0, pprint.length-2);
+            }
+            // Ausgeben
+            if (state.val != pprint){
+                DatenAusgabe(tadapter,'info.activeprintjob', 'state', 'Printer with active printjob', 'string', true, false, '', 'text', pprint)
+            }
         }
-    }
-    // Sting anpassen
-    if (pprint.length >0 ){
-        pprint = pprint.substring(0, pprint.length-2);
-    }
-    // Ausgeben
-    DatenAusgabe(tadapter,'info.activeprintjob', 'state', 'Printer with active printjob', 'string', true, false, '', 'text', pprint)
+    });
 }
