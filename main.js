@@ -1819,7 +1819,7 @@ function infoprinter(tadapter){
 
     // info.activeprintjob
     // *******************
-    tadapter.getstate('info.activeprinter', (err, state) => {
+    tadapter.getstate('info.activeprintjob', (err, state) => {
         if (!err && state){
             let pprint='';
             for (let p = 0; p < aprinterDruckt.length; p++) {
