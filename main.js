@@ -12,6 +12,7 @@
 
 const utils = require('@iobroker/adapter-core');
 const request = require('request');
+const fs = require('fs');
 
 // interne Fehlerrückmeldungen
 const rsfail = 'rsError';
@@ -25,6 +26,7 @@ let repPortOK = false ;
 let repetierApi = '' ;
 let repApiKeyOK = false ;
 let repetierModel = false;
+let repetierDelPri = false;
 
 // Datenübergabevariablen
 let printerwert ;
@@ -32,6 +34,12 @@ let printerdatenpfad = '' ;
 
 // Allgemeine Hilfsvariablen
 let i = 0 ;
+
+// Sprachauswahl
+let sprachen = {0:'en', 1:'de', 2:'ru', 3:'pt', 4:'nl', 5:'fr', 6:'it', 7:'es', 8:'pl', 9:'zh-cn'};
+let lang = 'de'; // de
+let langnr = 1;  //sprachen.search(lang);  // 1 = de
+let alang; 
 
 // Variablen für TimeOut-IDs
 let tou1 ;
@@ -83,11 +91,14 @@ class Template extends utils.Adapter {
     onReady(callback) {
 
         // Initialisierung
+        // Sprachen
+        Language(this, lang, langnr);
+
         // Adapterwert 'info.connection' übergeben
         this.setState('info.connection', true, true);
     
 	    // Meldung ausgeben
-	    this.log.info('RepetierServer verbunden');
+	    this.log.info(alang[0][lang]);
 
         // *******************
         // Adapterwerte prüfen
@@ -98,48 +109,60 @@ class Template extends utils.Adapter {
         repetierPort = this.config.repPort;
         repetierApi = this.config.repApiKey;
         repetierModel = this.config.repModel;
+        //repetierDelPri = this-config.repDelPri;
 
         // IP-Adresse prüfen
         if(repetierIP == '' || repetierIP == '0.0.0.0'){
-            this.log.info('Repetier IP: ' + repetierIP);
-            this.log.info('Keine korrekte IP angegeben!');
+            this.log.info(alang[4][lang] + ' ' + repetierIP);
+            this.log.info(alang[5][lang]);
             this.setState('info.connection', false, false);
             repIPOK = false;
         }
         else {
             repIPOK = true;
-            this.log.info('Repetier IP: ' + repetierIP);
+            this.log.info(alang[4][lang] + ' ' + repetierIP);
         }
 
         // ApiKey prüfen
         if(repetierApi == ''){
-            this.log.info('Kein ApiKey angegeben!');
+            this.log.info(alang[6][lang]);
             this.setState('info.connection', false, false);
             repApiKeyOK = false;
         }
         else {
             repApiKeyOK = true;
-            this.log.info('Repetier ApiKey: ' + repetierApi);
+            this.log.info(alang[7][lang] + ' ' + repetierApi);
         }
 
         // Port prüfen --> Defaultwert für Port übergeben, falls keine Angabe
         if(repetierPort == ''){
             repetierPort = '3344';
-            this.log.info('Repetier Defaultport 3344 wurde übernommen!');
+            this.log.info(alang[8][lang]);
             repPortOK = true;
         }
         else {
             repPortOK = true;
-            this.log.info('Repetier Port: ' + repetierPort);
+            this.log.info(alang[9][lang] + ' ' + repetierPort);
         }
   
+        // In Repetierserver gelöschte Drucker automatisch im ioBroker entfernen
+        if (!repetierDelPri){
+            repetierDelPri = false;
+            this.log.info(alang[10][lang]);
+        }
+        else{
+            this.log.info(alang[11][lang]);
+        }
+        repetierDelPri = true;
         // Modul-Management prüfen
         if (!repetierModel){
             repetierModel = false;
         }
 
+        repetierModel = true;
+
         if (repetierModel == true){
-            this.log.info('Repetier Model-Management aktiv'); 
+            this.log.info(alang[12][lang]); 
         }
         
         // Initisalsierung
@@ -179,7 +202,7 @@ class Template extends utils.Adapter {
             aaktdruckid.splice(0);
 
             // info-Ausgabe
-            this.log.info('Repetier-Server Service bereinigt...');
+            this.log.info(alang[13][lang]);
 
             // info.connection zurücksetzen
             this.setState('info.connection', false, false);
@@ -191,8 +214,8 @@ class Template extends utils.Adapter {
             this.setState('info.printjob', {val: '', ack: true});
 
             // Infos ausgeben
-            this.log.info('Repetier-Server Verbindungsaufbau gestoppt...');
-            this.log.info('Repetier-Server Service gestoppt...');
+            this.log.info(alang[14][lang]);
+            this.log.info(alang[15][lang]);
             
             callback();
 
@@ -452,6 +475,9 @@ function main(tadapter)
     // Initialisierung
     // ===============
 
+    // Sprachauswahl init
+    Language(tadapter, lang, langnr);
+
     // PrinterUpdate Button
     PrinterUpdateButton(tadapter);
     
@@ -519,13 +545,13 @@ function printerUpdate(tadapter, refreshtime){
                 fprintercnt = content.printers.length;
 
                 // Alle Drucker einlesen
-                for (let p = 0; p < fprintercnt; p++) {
+                for (let pp = 0; pp < fprintercnt; pp++) {
 
                     // Druckername
                     //printername = content.printers[p].slug;
 
                     // Array aprinter füllen
-                    aprinter[p] = content.printers[p].slug;
+                    aprinter[pp] = content.printers[pp].slug;
 
                     // über alle Printer
                     for (let p = 0; p < fprintercnt; p++) {
@@ -534,6 +560,11 @@ function printerUpdate(tadapter, refreshtime){
                         fprintername = aprinter[p];
 
                         if (fprintername){
+
+                            // Kanal anlegen/pflegen
+                            PrinterKanaele(tadapter, fprintername)
+                            //printerdatenpfad = printerpath + 'Printer_' + fprintername;
+                            //SetKanal(tadapter, printerdatenpfad, 'Printer ' + fprintername);
 
                             // Drucker aktivieren
                             printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Aktivieren';
@@ -570,7 +601,45 @@ function printerUpdate(tadapter, refreshtime){
                             // Druckgeschwindigkeit ändern (10% - 300%)
                             printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte.Druckgeschwindigkeit';
                             DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit ändern', 'number', true, true, '%', 'value', 100); 
+                
                         }
+                    }
+
+                    // angelegte Drucker einlesen und in Repetierserver gelöschte Drucker automatisch entfernen
+                    if (repetierDelPri == true){
+                        let tpfad = printerpath.substring(0, printerpath.length - 1);
+                        tadapter.getChannels (tpfad, function (err, obj) {
+
+                            if (err) {
+                    
+                                tadapter.log.error(err);
+                    
+                            } else {
+                                // alle Drucker im Repetier-Server in eine Prüfstring schreiben
+                                let tRSPrinter = '';
+                                for (let pcp = 0; pcp < aprinter.length; pcp++) {
+                                    tRSPrinter = tRSPrinter + '%&Printer_' + aprinter[pcp] + ',';                           
+                                }
+                                tRSPrinter = '.'+ tRSPrinter;
+
+                                for (let pc = 0; pc < obj.length; pc++) {
+                                    let tmp = obj[pc]._id.split('.');
+                                    tmp = '%&' + tmp[3];
+
+                                    // prüfen, welcher Drucker in Repetierserver entfernt wurde und nicht aufgeführt wird
+                                    if (tmp != '%&Server'){
+                                        if (tRSPrinter.search(tmp) > 0){
+                                                
+                                            tadapter.log.info(tmp);
+                                            
+                                        }
+                                        else{
+                                            tadapter.log.info(tmp + ' löschen');
+                                        }
+                                    }
+                                }
+                            }
+                        });
                     }
 
                     // Message ausgeben
@@ -617,6 +686,10 @@ function refreshServer(tadapter, refreshtime){
                 if (!error && response.statusCode == 200){
 
                     // Abfrage Serverdaten
+                    // Kanal anlegen/pflegen
+                    printerdatenpfad = printerpath + 'Server';
+                    SetKanal(tadapter, printerdatenpfad, 'Serverinformationen');
+
                     // Programmname --> Server  
                     printerwert = content.name;
                     printerdatenpfad = serverpath + 'Programm';
@@ -1415,6 +1488,106 @@ function PrinterStart(tadapter, fprintername, refreshtime){
 // Allgemeine Funktionen
 // *********************
 
+// Spracheauswahl anlegen und Sparchen einlesen
+function Language(tadapter, tlang, tlangnr){
+
+    // Sprachen einlesen
+    let tdata = fs.readFileSync('node_modules/iobroker.repetierserver/languages.json', 'utf8');
+    alang = JSON.parse(tdata);
+
+    // Sprachauswahl anlegen
+    printerdatenpfad = 'info.Language';
+    tadapter.setObjectNotExists(printerdatenpfad,{
+        type: 'state',
+        common:
+        {
+            name:   alang[3][tlang],
+            type:   'number',
+            read:   true,
+            write:  true,
+            role:   'value.language',
+            states: sprachen,
+            def:    0,
+            min:    0,
+            max:    10
+        },
+        native: {}
+    });
+    tadapter.extendObject(printerdatenpfad,{common: {states: sprachen, name: alang[3][tlang]}});
+    tadapter.setState(printerdatenpfad, {val: tlangnr, ack: true});
+      
+}
+// Kanäle entsprechend ausprägen
+function PrinterKanaele(tadapter, fprintername){
+
+    // Adapter
+    SetKanal(tadapter, '', 'Repetier-Server for 3D-Printing');
+
+    // Repetierserver
+    printerdatenpfad = printerpath.substring(0, printerpath.length-1);
+    SetKanal(tadapter, printerdatenpfad, 'Serveradresse');
+   
+    // Kanal Printer
+    printerdatenpfad = printerpath + 'Printer_' + fprintername;
+    SetKanal(tadapter, printerdatenpfad, '3D-Printer ' + fprintername);
+
+    // Kanal Befehl
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Befehl' ;
+    SetKanal(tadapter, printerdatenpfad, 'G-Code Befehle');
+
+    // Kanal Error
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Error' ;
+    SetKanal(tadapter, printerdatenpfad, 'Fehlerstatus Extruder + Heizbed');
+
+    // Kanal Homing
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Homing' ;
+    SetKanal(tadapter, printerdatenpfad, 'Referenzierstatus');
+
+    // Kanal Info
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Info' ;
+    SetKanal(tadapter, printerdatenpfad, 'Printerinfo');
+
+    // Kanal Istwerte
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte' ;
+    SetKanal(tadapter, printerdatenpfad, 'aktuelle Werte');
+
+    // Kanal Koordinaten
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Koordinaten' ;
+    SetKanal(tadapter, printerdatenpfad, 'aktuelle Positionen');
+
+    // Kanal PrintJob
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob' ;
+    SetKanal(tadapter, printerdatenpfad, 'aktueller Druckauftrag');
+
+    // PrintModel, falls aktiv
+    if (repetierModel == true){
+      // Kanal PrintModel
+      printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintModel' ;
+      SetKanal(tadapter, printerdatenpfad, '3D-Modelle zum drucken');
+    }
+
+    // Kanal Sollvorgaben
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Sollvorgaben' ;
+    SetKanal(tadapter, printerdatenpfad, 'Sollwertvorgaben vom Server');
+
+    // Kanal Status
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status' ;
+    SetKanal(tadapter, printerdatenpfad, 'verschiedene Druckerstatus');
+
+    // Kanal Steuern
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern' ;
+    SetKanal(tadapter, printerdatenpfad, 'Drucker steuern');
+
+    // Kanal Steuern.Signale
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale' ;
+    SetKanal(tadapter, printerdatenpfad, 'Steuersignale');
+
+    // Kanal Steuern.Werte
+    printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte' ;
+    SetKanal(tadapter, printerdatenpfad, 'Steuerwerte');
+
+}
+
 // Updatebutton anlegen und initialisieren
 function PrinterUpdateButton(tadapter){
 
@@ -1545,6 +1718,22 @@ function DatenAusgabe(tadapter, d_Pfad, d_Type, c_Name, c_Type, c_Read, c_Write,
     });
 
     tadapter.setState(d_Pfad, {val: d_Wert, ack: true});
+}    
+
+// Kanal anlegen
+function SetKanal(tadapter, d_Pfad, c_Name){
+
+    tadapter.setObjectNotExists(d_Pfad,{
+        type: 'channel',
+        common:
+        {
+            name:   c_Name
+        },
+        native: {}
+    });
+
+    tadapter.extendObject(d_Pfad, {common: {name: c_Name}});
+
 }
 
 // Datenpunkt löschen
@@ -1555,7 +1744,7 @@ function DatenpunktLoeschen(tadapter, d_pfad){
         
         // wenn Fehler, dann Fehler ausgeben
         if (err){
-            tadapter.log.error('Datenpunkt löschen fehlgeschlagen -> ' + err);
+            tadapter.log.error(alang[16][lang] + ' ' + err);
         }
 
         // kein Fehler und Object vorhanden, dann löschen
@@ -1565,32 +1754,13 @@ function DatenpunktLoeschen(tadapter, d_pfad){
    })
 }
 
-// Daten von ioBroker lesen
-function DatenEinlesen(tadapter, d_pfad){
-
-    // Wert des Datenpunkts einlesen
-    tadapter.getState(d_pfad, (err, state) => {
-
-        // kein Fehler, dann Wert zurückgeben
-        if (!err && state && state.val){
-            return state.val;
-        }
-
-        // Fehler, dann interne Fehlermeldung zurückgeben
-        else{
-            tadapter.log.info('Lesefehler: ' + d_pfad);
-            return rsfail;
-        }
-    });
-}
-
 // grobe G-Code-Überprüfung
 function GCodeCheck(tadapter, G_Code){
 
     // Prüfen, og G-Code mit 'G', 'M', 'T', oder '@' beginnt
     if (G_Code.substr(0,1)=='G' || G_Code.substr(0,1)=='M' || G_Code.substr(0,1)=='T' || G_Code.substr(0,1)=='@'){
 
-        PrinterMessage(tadapter, 'G-Code übernommen');
+        PrinterMessage(tadapter, alang[17][lang]);
         return true;    // Prüfung bestanden, dann 'true' zurück
     }
     else{
@@ -1798,7 +1968,7 @@ function infoprinter(tadapter){
 
     // info.activeprinter
     // ******************
-    tadapter.getstate('info.activeprinter', (err, state) => {
+    tadapter.getState('info.activeprinter', (err, state) => {
         if (!err && state){
             let aprint='';
             for (let p = 0; p < aprinterAktiv.length; p++) {
@@ -1812,14 +1982,14 @@ function infoprinter(tadapter){
             }
             // Ausgeben
             if (state.val != aprint){
-                DatenAusgabe(tadapter,'info.activeprinter', 'state', 'Names of activated printers', 'string', true, false, '', 'text', aprint)
+                DatenAusgabe(tadapter,'info.activeprinter', 'state', alang[18][lang], 'string', true, false, '', 'text', aprint)
             }
         }
     });
 
     // info.activeprintjob
     // *******************
-    tadapter.getstate('info.activeprintjob', (err, state) => {
+    tadapter.getState('info.activeprintjob', (err, state) => {
         if (!err && state){
             let pprint='';
             for (let p = 0; p < aprinterDruckt.length; p++) {
@@ -1833,7 +2003,7 @@ function infoprinter(tadapter){
             }
             // Ausgeben
             if (state.val != pprint){
-                DatenAusgabe(tadapter,'info.activeprintjob', 'state', 'Printer with active printjob', 'string', true, false, '', 'text', pprint)
+                DatenAusgabe(tadapter,'info.activeprintjob', 'state', alang[19][lang], 'string', true, false, '', 'text', pprint)
             }
         }
     });
