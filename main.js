@@ -95,7 +95,7 @@ class Template extends utils.Adapter {
         this.setState('info.connection', true, true);
     
 	    // Meldung ausgeben
-	    //this.log.info(alang[0][sprachen[langnr]]);
+	    this.log.info(alang[0][sprachen[langnr]]);
 
         // *******************
         // Adapterwerte prüfen
