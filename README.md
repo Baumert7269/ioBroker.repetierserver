@@ -96,11 +96,16 @@ Some data points are only created when the 3D printer has been activated or the 
 - IP-Adresse of the Repetier-Server
 - Port of the Repetier-Server
 - API-Key of then Repetier-Server
+- 3D-Model-Management (checkbox yes/no)
 
 **************************************
 
 
 ## Changelog
+
+### 0.0.5
+
+* (Baumert7269) new button 'server_update' for update the serverinformation manuell
 
 ### 0.0.4
 

@@ -441,7 +441,23 @@ class Template extends utils.Adapter {
                     
                         break;
                 
-                    // Sprache weechseln
+                    // update_Server - Serverinformationen aktualisieren (V0.0.5)
+                    case (id.search('Server_update') > 0 && state.val == true):
+                        // Printerauswertung zurücksetzen
+                        printerauswertung = false;
+
+                        // Meldung ausgeben
+                        PrinterMessage(this, alang[48][sprachen[langnr]]);
+
+                        // Printerupdate durchführen
+                        serverUpdate(this, 2000);
+
+                        // state zurücksetzen
+                        this.setState(id, {val: false, ack: true});
+                    
+                        break;
+
+                    // Sprache wechseln
                     case (id.search('Language') > 0 && (state.val >= 0) && (state.val <=9) && sprachwechselaktiv == false):
 
                         // Sprache wechseln
@@ -1627,13 +1643,19 @@ function PrinterKanaele(tadapter, fprintername){
 
 }
 
-// Updatebutton anlegen und initialisieren
+// Updatebutton Printer anlegen und initialisieren
 function PrinterUpdateButton(tadapter){
 
     // 'update_Printer' anlegen
     DatenAusgabe(tadapter, printerpath + 'Printer_update', 'state', alang[36][sprachen[langnr]], 'boolean', true, true, '', 'button', false); 
 }
 
+// Updatebutton Server anlegen und initialisieren (V0.0.5)
+function ServerUpdateButton(tadapter){
+
+    // 'update_Server' anlegen
+    DatenAusgabe(tadapter, printerpath + 'Server_update', 'state', alang[47][sprachen[langnr]], 'boolean', true, true, '', 'button', false); 
+}
 // Startbutton initialisieren oder löschen
 function PrinterModelButtons(tadapter, InitDel, refreshtime){
 
