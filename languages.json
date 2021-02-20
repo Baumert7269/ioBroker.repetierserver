@@ -11,6 +11,7 @@
         "pl": "serwer repetierserver podłączony",
         "zh-cn": "repetierserver已连接"
     },
+
     "1": {
         "en": "No correct IP specified!",
         "de": "keine korrekte IP angegeben!",
@@ -23,6 +24,7 @@
         "pl": "Nie podano poprawnego adresu IP!",
         "zh-cn": "未指定正确的IP！"
     },
+
     "2": {
         "en": "Language",
         "de": "Sprache",
@@ -35,6 +37,7 @@
         "pl": "Język",
         "zh-cn": "语言"
     },
+
     "3": {
         "en": "Language selection",
         "de": "Sprachauswahl",
@@ -47,6 +50,7 @@
         "pl": "Wybór języka",
         "zh-cn": "语言选择"
     },
+
     "4": {
         "en": "Repetier IP:",
         "de": "Repetier IP:",
@@ -59,6 +63,7 @@
         "pl": "Repetier IP:",
         "zh-cn": "中继IP："
     },
+
     "5": {
         "en": "No correct IP specified!",
         "de": "keine korrekte IP angegeben!",
@@ -71,6 +76,7 @@
         "pl": "Nie podano poprawnego adresu IP!",
         "zh-cn": "未指定正确的IP！"
     },
+
     "6": {
         "en": "No ApiKey specified!",
         "de": "kein ApiKey angegeben!",
@@ -83,6 +89,7 @@
         "pl": "Nie określono ApiKey!",
         "zh-cn": "未指定ApiKey！"
     },
+
     "7": {
         "en": "Repetier ApiKey:",
         "de": "Repetier ApiKey:",
@@ -95,6 +102,7 @@
         "pl": "Repetier ApiKey:",
         "zh-cn": "Repetier ApiKey："
     },
+
     "8": {
         "en": "Repetier default port 3344 has been accepted!",
         "de": "Repetier Standard Port 3344 wurde akzeptiert!",
@@ -107,6 +115,7 @@
         "pl": "Domyślny port repetiera 3344 został zaakceptowany!",
         "zh-cn": "Repetier默认端口3344已被接受！"
     },
+
     "9": {
         "en": "Repetier port:",
         "de": "Repetier-Port:",
@@ -119,6 +128,7 @@
         "pl": "Port repetiera:",
         "zh-cn": "中继端口："
     },
+    
     "10": {
         "en": "automatic printer cleanup disabled",
         "de": "automatische Druckerbereinigung deaktiviert",
