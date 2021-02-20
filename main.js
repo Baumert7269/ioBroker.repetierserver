@@ -14,10 +14,6 @@ const utils = require('@iobroker/adapter-core');
 const request = require('request');
 const fs = require('fs');
 
-// interne Fehlerrückmeldungen
-const rsfail = 'rsError';
-const rGcodeUnbekannt = 'unbekannter G-Code' ;
-
 // Adapterparameter
 let repetierIP = '' ;
 let repIPOK = false ;
@@ -37,9 +33,9 @@ let i = 0 ;
 
 // Sprachauswahl
 let sprachen = {0:'en', 1:'de', 2:'ru', 3:'pt', 4:'nl', 5:'fr', 6:'it', 7:'es', 8:'pl', 9:'zh-cn'};
-let lang = 'de'; // de
-let langnr = 1;  //sprachen.search(lang);  // 1 = de
-let alang; 
+let langnr = 1;  // 1 = de
+let alang ; 
+let sprachwechselaktiv = false;
 
 // Variablen für TimeOut-IDs
 let tou1 ;
@@ -51,19 +47,20 @@ let tou6 ;
 let tou7 ;
 let tou8 ;
 let tou9 ;
+let tou10 ;
 
 // Statusvariablen für schnelle Reaktionen
 const aprinterAktiv = new Array;  // (Printer, aktiv)
 const aprinterDruckt = new Array; // (Printer, druckt)
-let serveronline = false; // Repetierserver online
+let serveronline = false;         // Repetierserver online
 
 // interne Druckerübersicht/Druckerauswertung
 const aprinter = new Array;
 let printerauswertung = false ;
 
 // Druckmodelle
-const amodelle = new Array; // (Printer, ID, Name, intNr, Gruppe)
-const aaktdruckid = new Array; // (Printer, aktID)
+const amodelle = new Array;      // (Printer, ID, Name, intNr, Gruppe)
+const aaktdruckid = new Array;   // (Printer, aktID)
 
 // Hauptpfade
 let printerpath = '' ;
@@ -92,13 +89,13 @@ class Template extends utils.Adapter {
 
         // Initialisierung
         // Sprachen
-        Language(this, lang, langnr);
+        Language(this, langnr, 2000);
 
         // Adapterwert 'info.connection' übergeben
         this.setState('info.connection', true, true);
     
 	    // Meldung ausgeben
-	    this.log.info(alang[0][lang]);
+	    //this.log.info(alang[0][sprachen[langnr]]);
 
         // *******************
         // Adapterwerte prüfen
@@ -113,45 +110,45 @@ class Template extends utils.Adapter {
 
         // IP-Adresse prüfen
         if(repetierIP == '' || repetierIP == '0.0.0.0'){
-            this.log.info(alang[4][lang] + ' ' + repetierIP);
-            this.log.info(alang[5][lang]);
+            this.log.info(alang[4][sprachen[langnr]] + ' ' + repetierIP);
+            this.log.info(alang[5][sprachen[langnr]]);
             this.setState('info.connection', false, false);
             repIPOK = false;
         }
         else {
             repIPOK = true;
-            this.log.info(alang[4][lang] + ' ' + repetierIP);
+            this.log.info(alang[4][sprachen[langnr]] + ' ' + repetierIP);
         }
 
         // ApiKey prüfen
         if(repetierApi == ''){
-            this.log.info(alang[6][lang]);
+            this.log.info(alang[6][sprachen[langnr]]);
             this.setState('info.connection', false, false);
             repApiKeyOK = false;
         }
         else {
             repApiKeyOK = true;
-            this.log.info(alang[7][lang] + ' ' + repetierApi);
+            this.log.info(alang[7][sprachen[langnr]] + ' ' + repetierApi);
         }
 
         // Port prüfen --> Defaultwert für Port übergeben, falls keine Angabe
         if(repetierPort == ''){
             repetierPort = '3344';
-            this.log.info(alang[8][lang]);
+            this.log.info(alang[8][sprachen[langnr]]);
             repPortOK = true;
         }
         else {
             repPortOK = true;
-            this.log.info(alang[9][lang] + ' ' + repetierPort);
+            this.log.info(alang[9][sprachen[langnr]] + ' ' + repetierPort);
         }
   
         // In Repetierserver gelöschte Drucker automatisch im ioBroker entfernen
         if (!repetierDelPri){
             repetierDelPri = false;
-            this.log.info(alang[10][lang]);
+            this.log.info(alang[10][sprachen[langnr]]);
         }
         else{
-            this.log.info(alang[11][lang]);
+            this.log.info(alang[11][sprachen[langnr]]);
         }
         repetierDelPri = true;
         // Modul-Management prüfen
@@ -162,7 +159,7 @@ class Template extends utils.Adapter {
         repetierModel = true;
 
         if (repetierModel == true){
-            this.log.info(alang[12][lang]); 
+            this.log.info(alang[12][sprachen[langnr]]); 
         }
         
         // Initisalsierung
@@ -193,6 +190,7 @@ class Template extends utils.Adapter {
             clearTimeout(tou7);
             clearTimeout(tou8);
             clearTimeout(tou9);
+            clearTimeout(tou10);
 
             // Arrays löschen
             aprinterAktiv.splice(0);
@@ -202,7 +200,7 @@ class Template extends utils.Adapter {
             aaktdruckid.splice(0);
 
             // info-Ausgabe
-            this.log.info(alang[13][lang]);
+            this.log.info(alang[13][sprachen[langnr]]);
 
             // info.connection zurücksetzen
             this.setState('info.connection', false, false);
@@ -214,8 +212,8 @@ class Template extends utils.Adapter {
             this.setState('info.printjob', {val: '', ack: true});
 
             // Infos ausgeben
-            this.log.info(alang[14][lang]);
-            this.log.info(alang[15][lang]);
+            this.log.info(alang[14][sprachen[langnr]]);
+            this.log.info(alang[15][sprachen[langnr]]);
             
             callback();
 
@@ -241,7 +239,7 @@ class Template extends utils.Adapter {
             if (tmp.length > 3) {
 
                 // Printername auswerten
-                if (tmp[3].search('rinter_') > 0 || tmp[3].search('pdate_Printer') > 0){  // --> Printer ohne 'P', damit search > 0 sein kann    
+                if (tmp[3].search('rinter_') > 0 || tmp[3].search('pdate_Printer') > 0 || tmp[2] == 'info'){  // --> Printer ohne 'P', damit search > 0 sein kann    
                     
                     // Printername aufbauen
                     tprintername = tmp[3].replace('Printer_', '');
@@ -316,7 +314,7 @@ class Template extends utils.Adapter {
                         break;
 
                     // Manueller G-Code-Befehl
-                    case (id.search('Befehl.G_Code') > 0 && state.val != '' && state.val != rGcodeUnbekannt):
+                    case (id.search('Befehl.G_Code') > 0 && state.val != '' && state.val != alang[41][sprachen[langnr]]):
                         // Befehl ist korrekt --> dann übergeben
                         if (GCodeCheck(state.val) == true){
                             request(
@@ -377,7 +375,7 @@ class Template extends utils.Adapter {
 
                                 // Modelname in Beschreibung des Startbuttons schreiben
                                 printerdatenpfad = printerpath + 'Printer_' + tprintername + '.Steuern.Signale.Start';
-                                let objName = 'PrintJob starten (' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ')'
+                                let objName = alang[42][sprachen[langnr]] + ' (' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ')'
                                 this.setObjectNotExists(printerdatenpfad,{
                                     type: 'state',
                                     common:
@@ -393,8 +391,8 @@ class Template extends utils.Adapter {
                                 this.extendObject(printerdatenpfad,{common: {name: objName}});
 
                                 // Meldung ausgeben
-                                this.log.info('Druckteil ' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ' wurde am Drucker >' + tprintername + '< gesetzt...');
-                                PrinterMessage(this, 'Druckteil ' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ' wurde am Drucker >' + tprintername + '< gesetzt...');
+                                this.log.info(alang[43][sprachen[langnr]] + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ' ' + alang[43][sprachen[langnr]] + ' >' + tprintername + '<');
+                                PrinterMessage(this, alang[43][sprachen[langnr]] + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ' ' + alang[43][sprachen[langnr]] + ' >' + tprintername + '<');
 
                                 // aktive ModelID setzen
                                 SetModelIDPrinter(tprintername, amodelle[p]['ID'])
@@ -433,7 +431,7 @@ class Template extends utils.Adapter {
                         printerauswertung = false;
 
                         // Meldung ausgeben
-                        PrinterMessage(this, 'Printerupdate wird durchgeführt');
+                        PrinterMessage(this, alang[44][sprachen[langnr]]);
 
                         // Printerupdate durchführen
                         printerUpdate(this, 2000);
@@ -443,6 +441,19 @@ class Template extends utils.Adapter {
                     
                         break;
                 
+                    // Sprache weechseln
+                    case (id.search('Language') > 0 && (state.val >= 0) && (state.val <=9) && sprachwechselaktiv == false):
+
+                        // Sprache wechseln
+                        Language(this, state.val, 2500);
+
+                        // Meldung ausgeben
+                        PrinterMessage(this, alang[46][sprachen[langnr]]);
+
+                        // bei allen Kanälen die Sprache wechseln
+                        
+                        break;
+
                     }
                 }
             }   
@@ -476,7 +487,7 @@ function main(tadapter)
     // ===============
 
     // Sprachauswahl init
-    Language(tadapter, lang, langnr);
+    Language(tadapter, langnr, 2500);
 
     // PrinterUpdate Button
     PrinterUpdateButton(tadapter);
@@ -1489,102 +1500,130 @@ function PrinterStart(tadapter, fprintername, refreshtime){
 // *********************
 
 // Spracheauswahl anlegen und Sparchen einlesen
-function Language(tadapter, tlang, tlangnr){
+function Language(tadapter, tlangnr, refreshtime){
 
-    // Sprachen einlesen
-    let tdata = fs.readFileSync('node_modules/iobroker.repetierserver/languages.json', 'utf8');
-    alang = JSON.parse(tdata);
+    // Sprachwechsel noch aktiv (true)
+    if (sprachwechselaktiv == false){
 
-    // Sprachauswahl anlegen
-    printerdatenpfad = 'info.Language';
-    tadapter.setObjectNotExists(printerdatenpfad,{
-        type: 'state',
-        common:
-        {
-            name:   alang[3][tlang],
-            type:   'number',
-            read:   true,
-            write:  true,
-            role:   'value.language',
-            states: sprachen,
-            def:    0,
-            min:    0,
-            max:    10
-        },
-        native: {}
-    });
-    tadapter.extendObject(printerdatenpfad,{common: {states: sprachen, name: alang[3][tlang]}});
-    tadapter.setState(printerdatenpfad, {val: tlangnr, ack: true});
-      
+        // Sprachwechselmerker setzen
+        sprachwechselaktiv = true;
+
+        // Sprachen einlesen
+        //let tdata = fs.readFileSync('node_modules/iobroker.repetierserver/languages.json', 'utf8');
+        let tdata = fs.readFileSync('languages.json', 'utf8');
+        alang = JSON.parse(tdata);
+    
+        // Sprachauswahl anlegen
+        printerdatenpfad = 'info.Language';
+        tadapter.setObjectNotExists(printerdatenpfad,{
+            type: 'state',
+            common:
+            {
+                name:   alang[3][sprachen[tlangnr]],
+                type:   'number',
+                read:   true,
+                write:  true,
+                role:   'value.language',
+                states: sprachen,
+                def:    0,
+                min:    0,
+                max:    10
+            },
+            native: {}
+        });
+        tadapter.extendObject(printerdatenpfad,{common: {states: sprachen, name: alang[3][sprachen[tlangnr]]}});
+        tadapter.setState(printerdatenpfad, {val: tlangnr, ack: true});
+
+        // Sprachwechselmerker durch
+        sprachwechselaktiv = false;
+
+    }
+
+    // Funktion erneut nach x Sekunden aufrufen, wenn noch nicht erledigt
+    if (sprachwechselaktiv == true){
+        clearTimeout(tou10);
+        tou10 = setTimeout(() => {
+            Language(tadapter, tlangnr, refreshtime);
+        }, refreshtime);
+    }
+    // wenn erledigt, dann nicht mehr aufrufen
+    else{
+        clearTimeout(tou10);
+    }
+
+
+
+
 }
+
 // Kanäle entsprechend ausprägen
 function PrinterKanaele(tadapter, fprintername){
 
     // Adapter
-    SetKanal(tadapter, '', 'Repetier-Server for 3D-Printing');
+    SetKanal(tadapter, '', alang[20][sprachen[langnr]]);
 
     // Repetierserver
     printerdatenpfad = printerpath.substring(0, printerpath.length-1);
-    SetKanal(tadapter, printerdatenpfad, 'Serveradresse');
+    SetKanal(tadapter, printerdatenpfad, alang[21][sprachen[langnr]]);
    
     // Kanal Printer
     printerdatenpfad = printerpath + 'Printer_' + fprintername;
-    SetKanal(tadapter, printerdatenpfad, '3D-Printer ' + fprintername);
+    SetKanal(tadapter, printerdatenpfad, '3D-' + alang[22][sprachen[langnr]] + ' ' + fprintername);
 
     // Kanal Befehl
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Befehl' ;
-    SetKanal(tadapter, printerdatenpfad, 'G-Code Befehle');
-
+    SetKanal(tadapter, printerdatenpfad, alang[23][sprachen[langnr]]);
+ 
     // Kanal Error
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Error' ;
-    SetKanal(tadapter, printerdatenpfad, 'Fehlerstatus Extruder + Heizbed');
+    SetKanal(tadapter, printerdatenpfad, alang[24][sprachen[langnr]]);
 
     // Kanal Homing
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Homing' ;
-    SetKanal(tadapter, printerdatenpfad, 'Referenzierstatus');
+    SetKanal(tadapter, printerdatenpfad, alang[25][sprachen[langnr]]);
 
     // Kanal Info
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Info' ;
-    SetKanal(tadapter, printerdatenpfad, 'Printerinfo');
+    SetKanal(tadapter, printerdatenpfad, alang[26][sprachen[langnr]]);
 
     // Kanal Istwerte
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte' ;
-    SetKanal(tadapter, printerdatenpfad, 'aktuelle Werte');
+    SetKanal(tadapter, printerdatenpfad, alang[27][sprachen[langnr]]);
 
     // Kanal Koordinaten
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Koordinaten' ;
-    SetKanal(tadapter, printerdatenpfad, 'aktuelle Positionen');
+    SetKanal(tadapter, printerdatenpfad, alang[28][sprachen[langnr]]);
 
     // Kanal PrintJob
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob' ;
-    SetKanal(tadapter, printerdatenpfad, 'aktueller Druckauftrag');
+    SetKanal(tadapter, printerdatenpfad, alang[29][sprachen[langnr]]);
 
     // PrintModel, falls aktiv
     if (repetierModel == true){
       // Kanal PrintModel
       printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintModel' ;
-      SetKanal(tadapter, printerdatenpfad, '3D-Modelle zum drucken');
+      SetKanal(tadapter, printerdatenpfad, alang[30][sprachen[langnr]]);
     }
 
     // Kanal Sollvorgaben
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Sollvorgaben' ;
-    SetKanal(tadapter, printerdatenpfad, 'Sollwertvorgaben vom Server');
+    SetKanal(tadapter, printerdatenpfad, alang[31][sprachen[langnr]]);
 
     // Kanal Status
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status' ;
-    SetKanal(tadapter, printerdatenpfad, 'verschiedene Druckerstatus');
+    SetKanal(tadapter, printerdatenpfad, alang[32][sprachen[langnr]]);
 
     // Kanal Steuern
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern' ;
-    SetKanal(tadapter, printerdatenpfad, 'Drucker steuern');
+    SetKanal(tadapter, printerdatenpfad, alang[33][sprachen[langnr]]);
 
     // Kanal Steuern.Signale
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale' ;
-    SetKanal(tadapter, printerdatenpfad, 'Steuersignale');
+    SetKanal(tadapter, printerdatenpfad, alang[34][sprachen[langnr]]);
 
     // Kanal Steuern.Werte
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte' ;
-    SetKanal(tadapter, printerdatenpfad, 'Steuerwerte');
+    SetKanal(tadapter, printerdatenpfad, alang[35][sprachen[langnr]]);
 
 }
 
@@ -1592,7 +1631,7 @@ function PrinterKanaele(tadapter, fprintername){
 function PrinterUpdateButton(tadapter){
 
     // 'update_Printer' anlegen
-    DatenAusgabe(tadapter, printerpath + 'Printer_update', 'state', 'update Printers', 'boolean', true, true, '', 'button', false); 
+    DatenAusgabe(tadapter, printerpath + 'Printer_update', 'state', alang[36][sprachen[langnr]], 'boolean', true, true, '', 'button', false); 
 }
 
 // Startbutton initialisieren oder löschen
@@ -1625,7 +1664,7 @@ function PrinterModelButtons(tadapter, InitDel, refreshtime){
                     // 'Start' anlegen wenn InitDel = true
                     if (InitDel == true){
                         // Startbutton anlegen
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker starten (ID erforderlich!)', 'boolean', true, true, '', 'button', false);
+                        DatenAusgabe(tadapter, printerdatenpfad, 'state', alang[37][sprachen[langnr]], 'boolean', true, true, '', 'button', false);
                     }
                     // sonst löschen
                     else{
@@ -1639,14 +1678,14 @@ function PrinterModelButtons(tadapter, InitDel, refreshtime){
                     // 'Start' anlegen wenn InitDel = true
                     if (InitDel == true){
                         // Startbutton anlegen
-                        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckmodelle neu einlesen', 'boolean', true, true, '', 'button', false);
+                        DatenAusgabe(tadapter, printerdatenpfad, 'state', alang[38][sprachen[langnr]], 'boolean', true, true, '', 'button', false);
                     
                         printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintModel.Modelle';
                         tadapter.setObjectNotExists(printerdatenpfad,{
                             type: 'state',
                             common:
                             {
-                                name:   'Modelle (Name, Gruppe)',
+                                name:   alang[39][sprachen[langnr]],
                                 type:   'number',
                                 read:   true,
                                 write:  true,
@@ -1658,7 +1697,7 @@ function PrinterModelButtons(tadapter, InitDel, refreshtime){
                             },
                             native: {}
                         });
-                        tadapter.extendObject(printerdatenpfad,{common: {states: ''}});
+                        tadapter.extendObject(printerdatenpfad,{common: {states: '', name: alang[39][sprachen[langnr]]}});
                         tadapter.setState(printerdatenpfad, {val: '?', ack: true});
 
                     }
@@ -1697,7 +1736,7 @@ function PrinterModelButtons(tadapter, InitDel, refreshtime){
 function PrinterMessage(tadapter, tMessage){
 
     // 'Message_Printer' anlegen
-    DatenAusgabe(tadapter, printerpath + 'Nachricht', 'state', 'Message Printers', 'string', true, true, '', 'text', tMessage); 
+    DatenAusgabe(tadapter, printerpath + 'Nachricht', 'state', alang[40][sprachen[langnr]], 'string', true, true, '', 'text', tMessage); 
 }
 
 // Datenübergabe an ioBroker 
@@ -1744,7 +1783,7 @@ function DatenpunktLoeschen(tadapter, d_pfad){
         
         // wenn Fehler, dann Fehler ausgeben
         if (err){
-            tadapter.log.error(alang[16][lang] + ' ' + err);
+            tadapter.log.error(alang[16][sprachen[langnr]] + ' ' + err);
         }
 
         // kein Fehler und Object vorhanden, dann löschen
@@ -1760,12 +1799,12 @@ function GCodeCheck(tadapter, G_Code){
     // Prüfen, og G-Code mit 'G', 'M', 'T', oder '@' beginnt
     if (G_Code.substr(0,1)=='G' || G_Code.substr(0,1)=='M' || G_Code.substr(0,1)=='T' || G_Code.substr(0,1)=='@'){
 
-        PrinterMessage(tadapter, alang[17][lang]);
+        PrinterMessage(tadapter, alang[17][sprachen[langnr]]);
         return true;    // Prüfung bestanden, dann 'true' zurück
     }
     else{
 
-        PrinterMessage(tadapter, rGcodeUnbekannt);
+        PrinterMessage(tadapter, alang[41][sprachen[langnr]]);
         return false;   // sonst 'false' als Rückgabewert
     }
 }
@@ -1982,7 +2021,7 @@ function infoprinter(tadapter){
             }
             // Ausgeben
             if (state.val != aprint){
-                DatenAusgabe(tadapter,'info.activeprinter', 'state', alang[18][lang], 'string', true, false, '', 'text', aprint)
+                DatenAusgabe(tadapter,'info.activeprinter', 'state', alang[18][sprachen[langnr]], 'string', true, false, '', 'text', aprint)
             }
         }
     });
@@ -2003,7 +2042,7 @@ function infoprinter(tadapter){
             }
             // Ausgeben
             if (state.val != pprint){
-                DatenAusgabe(tadapter,'info.activeprintjob', 'state', alang[19][lang], 'string', true, false, '', 'text', pprint)
+                DatenAusgabe(tadapter,'info.activeprintjob', 'state', alang[19][sprachen[langnr]], 'string', true, false, '', 'text', pprint)
             }
         }
     });
