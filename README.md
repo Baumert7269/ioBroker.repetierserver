@@ -50,6 +50,7 @@ Es werden nur Werte vom Drucker empfangen, wenn dieser 'aktiviert' ist!
 - IP -Adresse des Repetier-Server
 - Port (default 3344)
 - API-Key zum Repetier-Server
+- 3D-Model-Management
 
 **************************************
 
@@ -96,12 +97,17 @@ Some data points are only created when the 3D printer has been activated or the 
 - IP-Adresse of the Repetier-Server
 - Port of the Repetier-Server
 - API-Key of then Repetier-Server
+- 3D-Model-Management (checkbox yes/no)
 
 **************************************
 
 
 ## Changelog
 
+### 0.0.4
+
+* (Baumert7269) code for 'info.activeprinter' and 'info.activeprintjob' new designed
+* (Baumert7269) new button 'server_update' for update the serverinformation manuell
 
 ### 0.0.3
 
