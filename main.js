@@ -89,7 +89,7 @@ class Template extends utils.Adapter {
 
         // Initialisierung
         // Sprachen
-        Language(this, langnr, 2000);
+        Language(this, langnr, 2500);
 
         // Adapterwert 'info.connection' übergeben
         this.setState('info.connection', true, true);
