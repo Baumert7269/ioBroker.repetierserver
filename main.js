@@ -106,7 +106,7 @@ class Template extends utils.Adapter {
         repetierPort = this.config.repPort;
         repetierApi = this.config.repApiKey;
         repetierModel = this.config.repModel;
-        //repetierDelPri = this-config.repDelPri;
+        //repetierDelPri = this.config.repDelPri;
 
         // IP-Adresse prüfen
         if(repetierIP == '' || repetierIP == '0.0.0.0'){
@@ -228,8 +228,10 @@ class Template extends utils.Adapter {
      * @param {string} id
      * @param {ioBroker.State | null | undefined} state
      */
+
     onStateChange(id, state) {
         if (state) {
+
             // The state was changed
             // Printername ermitteln
             let tprintername = '';
@@ -427,6 +429,7 @@ class Template extends utils.Adapter {
 
                     // update_Printer - neu Printer vorhanden/gelöschte Drucker entfernen (ToDo)
                     case (id.search('Printer_update') > 0 && state.val == true):
+
                         // Printerauswertung zurücksetzen
                         printerauswertung = false;
 
@@ -443,6 +446,7 @@ class Template extends utils.Adapter {
                 
                     // update_Server - Serverinformationen aktualisieren (V0.0.5)
                     case (id.search('Server_update') > 0 && state.val == true):
+                        
                         // Printerauswertung zurücksetzen
                         printerauswertung = false;
 

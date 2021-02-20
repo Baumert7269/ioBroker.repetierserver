@@ -565,27 +565,27 @@
         "zh-cn": "语言变更"
     },
     "47": {
-        "en": "Update server",
-        "de": "Server aktualisieren",
-        "ru": "Обновить принтер",
-        "pt": "Atualizar impressora",
-        "nl": "Update server",
-        "fr": "Mettre à jour l'imprimante",
-        "it": "Aggiorna stampante",
-        "es": "Actualizar impresora",
-        "pl": "Zaktualizuj drukarkę",
-        "zh-cn": "德鲁克"
+        "en": "Update server data",
+        "de": "Serverdaten aktualisieren",
+        "ru": "Обновить данные сервера",
+        "pt": "Actualização de dados do servidor",
+        "nl": "Update server data",
+        "fr": "Mise à jour des données du serveur",
+        "it": "Aggiornare i dati del server",
+        "es": "Actualizar los datos del servidor",
+        "pl": "Aktualizacja danych serwera",
+        "zh-cn": "更新服务器数据"
     },
     "48": {
         "en": "Server update is performed",
         "de": "Serveraktualisierung wird durchgeführt",
-        "ru": "Обновление принтера выполнено",
-        "pt": "A atualização da impressora é realizada",
-        "nl": "Serverupdate wordt uitgevoerd",
-        "fr": "La mise à jour de l'imprimante est effectuée",
-        "it": "Viene eseguito l'aggiornamento della stampante",
-        "es": "Se realiza la actualización de la impresora.",
-        "pl": "Aktualizacja drukarki jest wykonywana",
-        "zh-cn": "打印机更新已执行"
+        "ru": "Обновление сервера в процессе выполнения",
+        "pt": "Actualização do servidor em curso",
+        "nl": "Server update in uitvoering",
+        "fr": "Mise à jour du serveur en cours",
+        "it": "Aggiornamento del server in corso",
+        "es": "Actualización del servidor en curso",
+        "pl": "Aktualizacja serwera w toku",
+        "zh-cn": "服务器更新中"
     }
 }
