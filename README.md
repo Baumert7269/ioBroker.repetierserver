@@ -37,7 +37,7 @@ Folgende Funktionen stehen zur Verfügung:
     - Datenpunkte: Modelle und Aktualisierung
   - Für jeden Drucker werden die im Repeater-Server geladenen Modelle beim Start des Adapters einmal in eine Auswahlliste geladen.
   - jede weitere Aktualisierung erfolgt über den "Aktualisierungsknopf".
-  - das in der Auswahlliste angezeigte Modell auch das aktuelle Startmodell ist
+  - das in der Auswahlliste angezeigte Modell ist auch das aktuelle Startmodell
   - das ausgewählte Modell wird im Namen der Starttaste angezeigt
   - es kann nur ein Druck gestartet werden - während eines Drucks wird kein weiterer Druck akzeptiert
   - Prüfen Sie vor dem Start über ioBroker, ob das Druckbett frei ist!!!
@@ -50,6 +50,7 @@ Es werden nur Werte vom Drucker empfangen, wenn dieser 'aktiviert' ist!
 - IP -Adresse des Repetier-Server
 - Port (default 3344)
 - API-Key zum Repetier-Server
+- 3D-Model-Management
 
 **************************************
 
@@ -96,12 +97,17 @@ Some data points are only created when the 3D printer has been activated or the 
 - IP-Adresse of the Repetier-Server
 - Port of the Repetier-Server
 - API-Key of then Repetier-Server
+- 3D-Model-Management (checkbox yes/no)
 
 **************************************
 
 
 ## Changelog
 
+### 0.0.4
+
+* (Baumert7269) code for 'info.activeprinter' and 'info.activeprintjob' new designed
+* (Baumert7269) new button 'server_update' for update the serverinformation manuell
 
 ### 0.0.3
 
