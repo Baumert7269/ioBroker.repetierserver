@@ -18,7 +18,7 @@
                 "--trace-warnings",
                 " -.logs"
             ],
-            "port": 5858,
+            "port": 5858,                       // 9229
         },
         {
             "type": "node",
