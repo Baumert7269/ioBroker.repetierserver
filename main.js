@@ -30,7 +30,7 @@ let printerdatenpfad = '' ;
 
 // Allgemeine Hilfsvariablen
 let i = 0 ;
-let debug = true;
+let debug = false;
 
 // Sprachauswahl
 let sprachen = {0:'en', 1:'de', 2:'ru', 3:'pt', 4:'nl', 5:'fr', 6:'it', 7:'es', 8:'pl', 9:'zh-cn'};
@@ -90,7 +90,7 @@ class Template extends utils.Adapter {
 
         // Initialisierung
         // Sprachen
-        //Language(this, langnr, 2500);
+        Language(this, langnr, 2500);
 
         // Adapterwert 'info.connection' übergeben
         this.setState('info.connection', true, true);
@@ -98,6 +98,7 @@ class Template extends utils.Adapter {
 	    // Meldung ausgeben
 	    //this.log.info(alang[0][sprachen[langnr]]);
         this.log.info("Repetierserver verbunden")
+        
         // *******************
         // Adapterwerte prüfen
         // *******************
@@ -107,7 +108,7 @@ class Template extends utils.Adapter {
         repetierPort = this.config.repPort;
         repetierApi = this.config.repApiKey;
         repetierModel = this.config.repModel;
-        repetierDelPri = this.config.repDelPri;
+        //repetierDelPri = this.config.repDelPri;
 
         // IP-Adresse prüfen
         if(repetierIP == '' || repetierIP == '0.0.0.0'){
@@ -144,20 +145,21 @@ class Template extends utils.Adapter {
         }
   
         // In Repetierserver gelöschte Drucker automatisch im ioBroker entfernen
-        if (!repetierDelPri){
-            repetierDelPri = false;
-            this.log.info("automatische Druckerbereinigung deaktiviert"); // 10
-        }
-        else{
-            this.log.info("automatische Druckerreinigung aktiviert"); //11
-        }
-        repetierDelPri = true;
+        //if (!repetierDelPri){
+        //    repetierDelPri = false;
+        //    this.log.info("automatische Druckerbereinigung deaktiviert"); // 10
+        //}
+        //else{
+        //    this.log.info("automatische Druckerreinigung aktiviert"); //11
+        //}
+        //repetierDelPri = true;
+
         // Modul-Management prüfen
         if (!repetierModel){
             repetierModel = false;
         }
 
-        repetierModel = true;
+        //repetierModel = true;
 
         if (repetierModel == true){
             this.log.info("Repetier 3D-Modellverwaltung aktiv");  //12
@@ -514,12 +516,15 @@ function main(tadapter)
 
     // PrinterUpdate Button
     PrinterUpdateButton(tadapter);
-    
+
+    // PrinterUpdate Button
+    ServerUpdateButton(tadapter);
+
     // PrinterUpdate (alle 20 Min.) Timer-ID: tou1
     // Diese Funktion muss vor den folgenden Funktion kompett durchlaufen sein
     // Die Variable "printerauswertung" wird hierzu verwendet
     printerUpdate(tadapter, 120000);
-
+     
     // Serverstatus (alle 5 Min.) Timer-ID: tou2
     refreshServer(tadapter, 300000);
 
@@ -1533,7 +1538,7 @@ function Language(tadapter, tlangnr, refreshtime){
 
         // Sprachen einlesen
         if (debug == false){
-            let tdata = fs.readFileSync('/opt/iobroker/node_modules/iobroker.repetierserver/languages.json', 'utf8');
+            let tdata = fs.readFileSync('languages.json', 'utf8');
         }
         else {
             let tdata = fs.readFileSync('C:/Program Files/iobroker/Testsystem1/node_modules/iobroker.repetierserver/languages.json', 'utf8');
@@ -1656,7 +1661,7 @@ function PrinterKanaele(tadapter, fprintername){
 
 // Updatebutton Printer anlegen und initialisieren
 function PrinterUpdateButton(tadapter){
-
+    
     // 'update_Printer' anlegen
     DatenAusgabe(tadapter, printerpath + 'Printer_update', 'state', "Drucker aktualisieren", 'boolean', true, true, '', 'button', false); //36
 }

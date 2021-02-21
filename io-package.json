@@ -1,127 +1,132 @@
 {
-    "common": {
-        "name": "repetierserver",
-        "version": "0.0.4",
-        "news": {
-            "0.0.4": {
-                "en": "ioBroker Adapter for RepetierServer - Server for 3D-printer",
-                "de": "ioBroker Adapter für RepetierServer - Server für 3D-Drucker",
-                "ru": "ioBroker Adapter для RepetierServer - сервер для 3D-принтера",
-                "pt": "Adaptador ioBroker para RepetierServer - Servidor para impressora 3D",
-                "nl": "ioBroker-adapter voor RepetierServer - Server voor 3D-printer",
-                "fr": "ioBroker Adapter for RepetierServer - Serveur pour imprimante 3D",
-                "it": "Adattatore ioBroker per RepetierServer - Server per stampante 3D",
-                "es": "Adaptador ioBroker para RepetierServer - Servidor para impresora 3D",
-                "pl": "ioBroker Adapter for RepetierServer - Serwer do drukarki 3D",
-                "zh-cn": "用于RepetierServer的ioBroker适配器-用于3D打印机的服务器"
-                   }
-        },
-        "title": "RepetierServer2",
-        "titleLang": {
-            "en": "RepetierServer2",
-            "de": "RepetierServer2",
-            "ru": "RepetierServer2",
-            "pt": "RepetierServer2",
-            "nl": "RepetierServer2",
-            "fr": "RepetierServer2",
-            "it": "RepetierServer2",
-            "es": "RepetierServer2",
-            "pl": "RepetierServer2",
-            "zh-cn": "RepetierServer2"
-        },
-        "desc": {
-            "en": "Adapter for the integration of the Repeat-Server into the ioBroker",
-            "de": "Adapter zur Integration des Repeat-Servers in den ioBroker",
-            "ru": "Адаптер для интеграции Repeat-Server в ioBroker",
-            "pt": "Adaptador para integração do Repeat-Server no ioBroker",
-            "nl": "Adapter voor de integratie van de Repeat-Server in de ioBroker",
-            "fr": "Adaptateur pour l'intégration du Repeat-Server dans l'ioBroker",
-            "it": "Adattatore per l'integrazione di Repeat-Server in ioBroker",
-            "es": "Adaptador para la integración de Repeat-Server en ioBroker",
-            "pl": "Adapter do integracji Repeat-Server z ioBroker",
-            "zh-cn": "用于将Repeat-Server集成到ioBroker中的适配器"
-        },
-        "authors": [
-            "Baumert7269 <thomas.baumert@live.de>"
-        ],
-        "platform": "Javascript/Node.js",
-        "mode": "daemon",
-        "icon": "repetier.png",
-        "materialize": true,
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/Baumert7269/ioBroker.repetierserver/master/admin/repetier.png",
-        "keywords": ["repetier", "3d druck", "repetier-server"],
-        "license": "MIT",
-        "readme": "https://github.com/Baumert7269/ioBroker.repetierserver/blob/master/README.md",
-        "loglevel": "debug",
-		"messagebox": true,
-		"compact": true,
-        "type": "hardware",
-        "connectionType": "local",
-        "dataSource": "poll",
-		"dependencies": [
-            {
-                "admin": ">=3.0.0"
-            },
-            {
-                "js-controller": ">=1.4.2"
-		    }
-        ]
+  "common": {
+    "name": "repetierserver",
+    "version": "0.0.4",
+    "news": {
+      "0.0.4": {
+        "en": "ioBroker Adapter for RepetierServer - Server for 3D-printer",
+        "de": "ioBroker Adapter für RepetierServer - Server für 3D-Drucker",
+        "ru": "ioBroker Adapter для RepetierServer - сервер для 3D-принтера",
+        "pt": "Adaptador ioBroker para RepetierServer - Servidor para impressora 3D",
+        "nl": "ioBroker-adapter voor RepetierServer - Server voor 3D-printer",
+        "fr": "ioBroker Adapter for RepetierServer - Serveur pour imprimante 3D",
+        "it": "Adattatore ioBroker per RepetierServer - Server per stampante 3D",
+        "es": "Adaptador ioBroker para RepetierServer - Servidor para impresora 3D",
+        "pl": "ioBroker Adapter for RepetierServer - Serwer do drukarki 3D",
+        "zh-cn": "用于RepetierServer的ioBroker适配器-用于3D打印机的服务器"
+      }
     },
-    "native": {
-		"repPort": "3344",
-		"repIP": "0.0.0.0",
-        "repApiKey": "22aa19a3-8610-47b1-8294-e7b98beeae19",
-        "repModel": false
-		},
-	"objects": [],
-    "instanceObjects": [
-        {
-            "_id": "info",
-            "type": "channel",
-            "common": {
-                "name": "Information"
-            },
-            "native": {}
-        },
-        {
-            "_id": "info.connection",
-            "type": "state",
-            "common": {
-                "role": "indicator.connected",
-                "name": "RepetierServer connected",
-                "type": "boolean",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "info.activeprinter",
-            "type": "state",
-            "common": {
-                "role": "text",
-                "name": "Names of the activated printers",
-                "type": "string",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "info.activeprintjob",
-            "type": "state",
-            "common": {
-                "role": "text",
-                "name": "Printer with active printjob",
-                "type": "string",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        }
-    ]
+    "title": "RepetierServer2",
+    "titleLang": {
+      "en": "RepetierServer2",
+      "de": "RepetierServer2",
+      "ru": "RepetierServer2",
+      "pt": "RepetierServer2",
+      "nl": "RepetierServer2",
+      "fr": "RepetierServer2",
+      "it": "RepetierServer2",
+      "es": "RepetierServer2",
+      "pl": "RepetierServer2",
+      "zh-cn": "RepetierServer2"
+    },
+    "desc": {
+      "en": "Adapter for the integration of the Repeat-Server into the ioBroker",
+      "de": "Adapter zur Integration des Repeat-Servers in den ioBroker",
+      "ru": "Адаптер для интеграции Repeat-Server в ioBroker",
+      "pt": "Adaptador para integração do Repeat-Server no ioBroker",
+      "nl": "Adapter voor de integratie van de Repeat-Server in de ioBroker",
+      "fr": "Adaptateur pour l'intégration du Repeat-Server dans l'ioBroker",
+      "it": "Adattatore per l'integrazione di Repeat-Server in ioBroker",
+      "es": "Adaptador para la integración de Repeat-Server en ioBroker",
+      "pl": "Adapter do integracji Repeat-Server z ioBroker",
+      "zh-cn": "用于将Repeat-Server集成到ioBroker中的适配器"
+    },
+    "authors": [
+      "Baumert7269 <thomas.baumert@live.de>"
+    ],
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "icon": "repetier.png",
+    "materialize": true,
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/Baumert7269/ioBroker.repetierserver/master/admin/repetier.png",
+    "keywords": [
+      "repetier",
+      "3d druck",
+      "repetier-server"
+    ],
+    "license": "MIT",
+    "readme": "https://github.com/Baumert7269/ioBroker.repetierserver/blob/master/README.md",
+    "loglevel": "debug",
+    "messagebox": true,
+    "compact": true,
+    "type": "hardware",
+    "connectionType": "local",
+    "dataSource": "poll",
+    "dependencies": [
+      {
+        "admin": ">=3.0.0"
+      },
+      {
+        "js-controller": ">=1.4.2"
+      }
+    ],
+    "installedFrom": "https://github.com/Baumert7269/ioBroker.repetierserver/tarball/4d64dcab141b8dfda5308585b36a149b6e8513b4"
+  },
+  "native": {
+    "repPort": "3344",
+    "repIP": "0.0.0.0",
+    "repApiKey": "22aa19a3-8610-47b1-8294-e7b98beeae19",
+    "repModel": false
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "RepetierServer connected",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.activeprinter",
+      "type": "state",
+      "common": {
+        "role": "text",
+        "name": "Names of the activated printers",
+        "type": "string",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.activeprintjob",
+      "type": "state",
+      "common": {
+        "role": "text",
+        "name": "Printer with active printjob",
+        "type": "string",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    }
+  ]
 }
