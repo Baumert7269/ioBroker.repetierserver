@@ -1531,7 +1531,7 @@ function Language(tadapter, tlangnr, refreshtime){
         sprachwechselaktiv = true;
 
         // Sprachen einlesen
-        let tdata = fs.readFileSync('node_modules/iobroker.repetierserver/languages.json', 'utf8');
+        let tdata = fs.readFileSync('iobroker.repetierserver/languages.json', 'utf8');
         //let tdata = fs.readFileSync('languages.json', 'utf8');
         alang = JSON.parse(tdata);
     
