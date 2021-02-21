@@ -106,7 +106,7 @@ class Template extends utils.Adapter {
         repetierPort = this.config.repPort;
         repetierApi = this.config.repApiKey;
         repetierModel = this.config.repModel;
-        //repetierDelPri = this.config.repDelPri;
+        repetierDelPri = this.config.repDelPri;
 
         // IP-Adresse prüfen
         if(repetierIP == '' || repetierIP == '0.0.0.0'){
@@ -1532,7 +1532,7 @@ function Language(tadapter, tlangnr, refreshtime){
 
         // Sprachen einlesen
         //let tdata = fs.readFileSync('node_modules/iobroker.repetierserver/languages.json', 'utf8');
-        let tdata = fs.readFileSync('languages.json', 'utf8');
+        let tdata = fs.readFileSync('node_modules/iobroker.repetierserver/languages.json', 'utf8');
         alang = JSON.parse(tdata);
     
         // Sprachauswahl anlegen
