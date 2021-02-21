@@ -37,7 +37,7 @@ Folgende Funktionen stehen zur Verfügung:
     - Datenpunkte: Modelle und Aktualisierung
   - Für jeden Drucker werden die im Repeater-Server geladenen Modelle beim Start des Adapters einmal in eine Auswahlliste geladen.
   - jede weitere Aktualisierung erfolgt über den "Aktualisierungsknopf".
-  - das in der Auswahlliste angezeigte Modell auch das aktuelle Startmodell ist
+  - das in der Auswahlliste angezeigte Modell ist auch das aktuelle Startmodell
   - das ausgewählte Modell wird im Namen der Starttaste angezeigt
   - es kann nur ein Druck gestartet werden - während eines Drucks wird kein weiterer Druck akzeptiert
   - Prüfen Sie vor dem Start über ioBroker, ob das Druckbett frei ist!!!

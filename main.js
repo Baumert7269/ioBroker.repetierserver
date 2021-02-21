@@ -483,12 +483,14 @@ class Template extends utils.Adapter {
 
 // @ts-ignore parent is a valid property on module
 if (module.parent) {
+
     // Export the constructor in compact mode
     /**
      * @param {Partial<ioBroker.AdapterOptions>} [options={}]
      */
     module.exports = (options) => new Template(options);
 } else {
+    
     // otherwise start the instance directly
     new Template();
 }
