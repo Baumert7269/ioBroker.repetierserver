@@ -18,15 +18,17 @@
                 "--trace-warnings",
                 " -.logs"
             ],
-            "port": 9229
+            "port": 5858,
         },
         {
             "type": "node",
             "request": "attach",
             "name": "An den Prozess anfügen",   // Name, der im VSCode Auswahlmenü neben dem grünen Play angezeigt wird
-            "address": "192.168.178.49", //"127.0.0.1",             // Adresse, an dem der node.js Prozess läuft (bei Remote Debug, der Remote-Rechner)
-            "port": 9229,                        // Port, auf dem der node.js Debugger lauscht, der mit node --debug-brk ... gestartet wird
-
+            "address": "127.0.0.1",             // Adresse, an dem der node.js Prozess läuft (bei Remote Debug, der Remote-Rechner)
+            "port": 5858,                       // Port, auf dem der node.js Debugger lauscht, der mit node --debug-brk ... gestartet wird
+                                                
+                                                // Im Terminal starten
+                                                // node --inspect-brk node_modules/iobroker.repetierserver/main.js --force --logs 
             "cwd": "${workspaceFolder}",
 
         }

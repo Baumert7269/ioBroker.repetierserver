@@ -30,6 +30,7 @@ let printerdatenpfad = '' ;
 
 // Allgemeine Hilfsvariablen
 let i = 0 ;
+let debug = true;
 
 // Sprachauswahl
 let sprachen = {0:'en', 1:'de', 2:'ru', 3:'pt', 4:'nl', 5:'fr', 6:'it', 7:'es', 8:'pl', 9:'zh-cn'};
@@ -1531,8 +1532,12 @@ function Language(tadapter, tlangnr, refreshtime){
         sprachwechselaktiv = true;
 
         // Sprachen einlesen
-        let tdata = fs.readFileSync('/opt/iobroker/node_modules/iobroker.repetierserver/languages.json', 'utf8');
-        //let tdata = fs.readFileSync('languages.json', 'utf8');
+        if (debug == false){
+            let tdata = fs.readFileSync('/opt/iobroker/node_modules/iobroker.repetierserver/languages.json', 'utf8');
+        }
+        else {
+            let tdata = fs.readFileSync('languages.json', 'utf8');
+        }
         alang = JSON.parse(tdata);
     
         // Sprachauswahl anlegen
