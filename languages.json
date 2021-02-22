@@ -61,7 +61,7 @@
         "it": "IP ripetitore:",
         "es": "IP del repetidor:",
         "pl": "Repetier IP:",
-        "zh-cn": "中继IP："
+        "zh-cn": "中继IP:"
     },
 
     "5": {
@@ -74,7 +74,7 @@
         "it": "Nessun IP corretto specificato!",
         "es": "¡No se especificó la IP correcta!",
         "pl": "Nie podano poprawnego adresu IP!",
-        "zh-cn": "未指定正确的IP！"
+        "zh-cn": "未指定正确的IP"
     },
 
     "6": {
@@ -87,7 +87,7 @@
         "it": "Nessun ApiKey specificato!",
         "es": "¡No se ha especificado ApiKey!",
         "pl": "Nie określono ApiKey!",
-        "zh-cn": "未指定ApiKey！"
+        "zh-cn": "未指定ApiKey"
     },
 
     "7": {
@@ -100,7 +100,7 @@
         "it": "Repetier ApiKey:",
         "es": "Repetier ApiKey:",
         "pl": "Repetier ApiKey:",
-        "zh-cn": "Repetier ApiKey："
+        "zh-cn": "Repetier ApiKey"
     },
 
     "8": {
@@ -441,6 +441,7 @@
         "pl": "Wartości kontrolne",
         "zh-cn": "控制值"
     },
+    
     "36": {
         "en": "Update printer",
         "de": "Drucker aktualisieren",
@@ -466,6 +467,7 @@
         "pl": "Uruchom drukarkę (wymagany identyfikator!)",
         "zh-cn": "启动打印机（需要ID！）"
     },
+
     "38": {
         "en": "Read in new 3d-models",
         "de": "Lesen Sie neue 3D-Modelle ein",
@@ -478,6 +480,7 @@
         "pl": "Przeczytaj w nowych modelach 3d",
         "zh-cn": "阅读新的3D模型"
     },
+
     "39": {
         "en": "3D-Models (name, group)",
         "de": "3D-Modelle (Name, Gruppe)",
@@ -490,6 +493,7 @@
         "pl": "Modele 3D (nazwa, grupa)",
         "zh-cn": "3D模型（名称，组）"
     },
+
     "40": {
         "en": "Message",
         "de": "Meldung",
@@ -502,6 +506,7 @@
         "pl": "Wiadomość",
         "zh-cn": "信息"
     },
+
     "41": {
         "en": "Unknown G-code",
         "de": "Unbekannter G-Code",
@@ -514,6 +519,7 @@
         "pl": "Nieznany kod G.",
         "zh-cn": "未知的G码"
     },
+
     "42": {
         "en": "PrintJob starten",
         "de": "PrintJob starten",
@@ -526,6 +532,7 @@
         "pl": "PrintJob starten",
         "zh-cn": "PrintJob启动"
     },
+
     "43": {
         "en": "3D-Model",
         "de": "3D-Modell",
@@ -538,6 +545,7 @@
         "pl": "Model 3D",
         "zh-cn": "3D模型"
     },
+
     "44": {
         "en": "Printer update is performed",
         "de": "Druckeraktualisierung wird durchgeführt",
@@ -550,6 +558,7 @@
         "pl": "Aktualizacja drukarki jest wykonywana",
         "zh-cn": "打印机更新已执行"
     },
+
     "45": {
         "en": "was set at the printer",
         "de": "wurde markiert am Drucker",
@@ -562,6 +571,7 @@
         "pl": "został ustawiony w drukarce",
         "zh-cn": "设置在打印机上"
     },
+
     "46": {
         "en": "Changed language",
         "de": "Geänderte Sprache",
@@ -574,6 +584,7 @@
         "pl": "Zmieniono język",
         "zh-cn": "语言变更"
     },
+
     "47": {
         "en": "Update server data",
         "de": "Serverdaten aktualisieren",
@@ -586,6 +597,7 @@
         "pl": "Aktualizacja danych serwera",
         "zh-cn": "更新服务器数据"
     },
+
     "48": {
         "en": "Server update is performed",
         "de": "Serveraktualisierung wird durchgeführt",
