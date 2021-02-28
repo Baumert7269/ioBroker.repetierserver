@@ -37,7 +37,7 @@ let sprachen = {0:'en', 1:'de', 2:'ru', 3:'pt', 4:'nl', 5:'fr', 6:'it', 7:'es', 
 let langnr = 1;  // 1 = de
 let alang ;      // Array für Text
 let sprachwechselaktiv = false; // Variable vorbelegen
-let sprachwechsel = false;
+//let sprachwechsel = false;
 
 // Sparachen einlesen
 let tdata = require('./languages.json')
@@ -101,8 +101,8 @@ class Template extends utils.Adapter {
         this.setState('info.connection', true, true);
     
 	    // Meldung ausgeben
-	    //this.log.info(alang[0][sprachen[langnr]]);
-        this.log.info("Repetierserver verbunden")
+	    this.log.info(alang[0][sprachen[langnr]]);
+        //this.log.info("Repetierserver verbunden")
         
         // *******************
         // Adapterwerte prüfen
@@ -380,7 +380,7 @@ class Template extends utils.Adapter {
                     case (id.search('PrintModel.Modelle') > 0 && state.val >= 0):
 
                         // Printernummer suchen
-                        for (let p = 0; p < amodelle.length; p++) {
+                        for (let p = 0; amodelle.length; p++) {
                             if (amodelle[p]["Printer"] == tprintername && amodelle[p]["intNr"] == state.val){
 
                                 // Modelname in Beschreibung des Startbuttons schreiben
@@ -474,19 +474,28 @@ class Template extends utils.Adapter {
 
                         if (langnr != state.val){
                             // Sprache wechseln
-                            Language(this, state.val);
+                            Language(this, state.val);                           
 
-                            // Merker für Sprachwechsel setzen
+                            // neue Sprache merken
+                            langnr = state.val;
+
+                            // neue Sprache über alle Printer verteilen
+                            for (let p = 0; p < aprinter.length; p++) {
+                                //if (aprinter[p]["Printer"] == tprintername && amodelle[p]["intNr"] == state.val){
+                                
+                                PrinterKanaele(this, aprinter[p])
+                                //}
+                            }
+
+                            // Sprache bein Kanal Server und Info aktivieren
                             Sprachwechsel(this, state.val);
-                            PrinterKanaele(this, tprintername)
 
                             // Meldung ausgeben
                             PrinterMessage(this,alang[46][sprachen[langnr]]);
 
                             // bei allen Kanälen die Sprache wechseln
-
-                            // neue Sprache merken
-                            langnr = state.val;
+                            //sprachwechsel = false;
+                            
                         }
                         break;
 
@@ -555,6 +564,9 @@ function main(tadapter)
 
     // Refresh PrintJob (alle 5 Sek.) Timer-ID: tou6
     refreshPrintJob(tadapter, 5000);
+
+    // Kanalsprache (Kanäle Server/Info)
+    Sprachwechsel(tadapter, langnr)
 
     // 3D Model Management aktiviert
     // =============================
@@ -1126,12 +1138,12 @@ function refreshState(tadapter, refreshtime){
                                     // Materialfluss % --> PrintJob
                                     printerwert = content[fprintername].flowMultiply;
                                     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Materialfluss';
-                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Materialfluss in %', 'number', true, false, '%', 'value.flow', printerwert.toFixed(0));
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Materialfluss (Ist) in %', 'number', true, false, '%', 'value.flow', printerwert.toFixed(0));
 
                                     // Druckgeschwindigkeit % --> PrintJob
                                     printerwert = content[fprintername].speedMultiply;
                                     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob.Druckgeschwindigkeit';
-                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit in %', 'number', true, false, '%', 'value.speed', printerwert.toFixed(0));
+                                    DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit (Ist) in %', 'number', true, false, '%', 'value.speed', printerwert.toFixed(0));
 
                                     // prüfen, ob Druck läuft
                                     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Drucker_druckt';
@@ -1548,15 +1560,6 @@ function Language(tadapter, tlangnr, refreshtime){
 
         // Sprachwechselmerker setzen
         sprachwechselaktiv = true;
-
-        // Sprachen einlesen
-        //if (debug == false){
-        //    let tdata = fs.readFileSync(tadapter.adapterDir + '/languages.json', 'utf8');
-        //}
-        //else {
-        //    let tdata = fs.readFileSync('C:/Program Files/iobroker/Testsystem1/node_modules/iobroker.repetierserver/languages.json', 'utf8');
-        //}
-        //alang = JSON.parse(tdata);
     
         // Sprachauswahl anlegen
         printerdatenpfad = 'info.Language';
@@ -1606,7 +1609,7 @@ function PrinterKanaele(tadapter, fprintername){
     // Repetierserver
     printerdatenpfad = printerpath.substring(0, printerpath.length-1);
     SetKanal(tadapter, printerdatenpfad, alang[21][sprachen[langnr]]);
-
+    
     // Kanal Printer
     printerdatenpfad = printerpath + 'Printer_' + fprintername;
     SetKanal(tadapter, printerdatenpfad, '3D-' + alang[22][sprachen[langnr]] + ' ' + fprintername);
@@ -1625,7 +1628,7 @@ function PrinterKanaele(tadapter, fprintername){
 
     // Kanal Info
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Info' ;
-    SetKanal(tadapter, printerdatenpfad, alang[26][sprachen[langnr]]);
+    SetKanal(tadapter, printerdatenpfad, alang[49][sprachen[langnr]]);
 
     // Kanal Istwerte
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Istwerte' ;
@@ -1637,35 +1640,43 @@ function PrinterKanaele(tadapter, fprintername){
 
     // Kanal PrintJob
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintJob' ;
-    SetKanal(tadapter, printerdatenpfad, alang[29][sprachen[langnr]]); //29
+    SetKanal(tadapter, printerdatenpfad, alang[29][sprachen[langnr]]);
 
     // PrintModel, falls aktiv
     if (repetierModel == true){
       // Kanal PrintModel
       printerdatenpfad = printerpath + 'Printer_' + fprintername + '.PrintModel' ;
-      SetKanal(tadapter, printerdatenpfad, alang[30][sprachen[langnr]]); //30
+      SetKanal(tadapter, printerdatenpfad, alang[30][sprachen[langnr]]);
     }
 
     // Kanal Sollvorgaben
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Sollvorgaben' ;
-    SetKanal(tadapter, printerdatenpfad, alang[31][sprachen[langnr]]); //31
+    SetKanal(tadapter, printerdatenpfad, alang[31][sprachen[langnr]]);
 
     // Kanal Status
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status' ;
-    SetKanal(tadapter, printerdatenpfad, alang[32][sprachen[langnr]]); //32
+    SetKanal(tadapter, printerdatenpfad, alang[32][sprachen[langnr]]);
 
     // Kanal Steuern
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern' ;
-    SetKanal(tadapter, printerdatenpfad, alang[33][sprachen[langnr]]); //33
+    SetKanal(tadapter, printerdatenpfad, alang[33][sprachen[langnr]]);
 
     // Kanal Steuern.Signale
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale' ;
-    SetKanal(tadapter, printerdatenpfad, alang[34][sprachen[langnr]]); //34
+    SetKanal(tadapter, printerdatenpfad, alang[34][sprachen[langnr]]);
 
     // Kanal Steuern.Werte
     printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte' ;
-    SetKanal(tadapter, printerdatenpfad, alang[35][sprachen[langnr]]); //35
+    SetKanal(tadapter, printerdatenpfad, alang[35][sprachen[langnr]]);
 
+    // Kanal Server
+    printerdatenpfad = printerpath + 'Server';
+    SetKanal(tadapter, printerdatenpfad, alang[50][sprachen[langnr]]);
+
+    // Kanal Info
+    //printerdatenpfad = printerpath + 'information';
+    SetKanal(tadapter, 'info', alang[49][sprachen[langnr]]);
+    
 }
 
 // Updatebutton Printer anlegen und initialisieren
@@ -2056,7 +2067,7 @@ function infoprinter(tadapter){
     // ******************
     tadapter.getState('info.activeprinter', (err, state) => {
         if (!state.val){
-            state.val = '';
+            state.val = '?';
         }
         if (!err && state.val){
             let aprint='';
@@ -2066,7 +2077,7 @@ function infoprinter(tadapter){
                 }
             }
             // Sting anpassen
-            if (aprint.length > 0){
+            if (aprint.length > 2){
                 aprint = aprint.substring(0, aprint.length-2);
             }
 
@@ -2081,7 +2092,7 @@ function infoprinter(tadapter){
     // *******************
     tadapter.getState('info.activeprintjob', (err, state) => {
         if (!state.val){
-            state.val = '';
+            state.val = '?';
         }    
         if (!err && state.val){
             let pprint='';
@@ -2091,7 +2102,7 @@ function infoprinter(tadapter){
                 }
             }
             // Sting anpassen
-            if (pprint.length >0 ){
+            if (pprint.length >2 ){
                 pprint = pprint.substring(0, pprint.length-2);
             }
 
@@ -2108,16 +2119,12 @@ function infoprinter(tadapter){
     });
 }
 
-// Sprache aktualisieren
+// Sprache der Kanäle Server und Info aktualisieren
 function Sprachwechsel(tadapter, snr) {
     tadapter.extendObject('info.activeprintjob',{common: {name: alang[19][sprachen[snr]]}});
     tadapter.extendObject('info.activeprinter',{common: {name: alang[18][sprachen[snr]]}});
     tadapter.extendObject('info.connection',{common: {name: alang[0][sprachen[snr]]}});
-
-
-
-
-
-    sprachwechsel = false;
-    
+    tadapter.extendObject(printerpath + 'Nachricht',{common: {name: alang[40][sprachen[snr]]}});
+    tadapter.extendObject(printerpath + 'Printer_update',{common: {name: alang[36][sprachen[snr]]}});
+    tadapter.extendObject(printerpath + 'Server_update',{common: {name: alang[48][sprachen[snr]]}});
 }

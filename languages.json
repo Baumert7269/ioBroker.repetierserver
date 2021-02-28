@@ -609,5 +609,31 @@
         "es": "Actualización del servidor en curso",
         "pl": "Aktualizacja serwera w toku",
         "zh-cn": "服务器更新中"
+    },
+
+    "49": {
+        "en": "Information",
+        "de": "Information",
+        "ru": "Информация",
+        "pt": "Informação",
+        "nl": "Informatie",
+        "fr": "Informations",
+        "it": "Informazioni",
+        "es": "Información",
+        "pl": "Informacje",
+        "zh-cn": "资讯"
+    },
+
+    "50": {
+        "en": "Server information",
+        "de": "Serverinformationen",
+        "ru": "Информация о сервере",
+        "pt": "Informação do servidor",
+        "nl": "Server informatie",
+        "fr": "Informations sur le serveur",
+        "it": "Informazioni sul server",
+        "es": "Información del servidor",
+        "pl": "Informacje o serwerze",
+        "zh-cn": "服务器信息"
     }
 }
