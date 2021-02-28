@@ -674,5 +674,57 @@
         "es": "Código G manual",
         "pl": "Instrukcja G-Code",
         "zh-cn": "G-Code手册"
+    },
+
+    "54": {
+        "en": "Repetier server connection terminated ...",
+        "de": "Repetier-Server-Verbindung beendet ...",
+        "ru": "Повторное соединение с сервером прервано ...",
+        "pt": "Ligação de servidor de repetição terminada ...",
+        "nl": "Herhaalde serververbinding beëindigd ...",
+        "fr": "Répétition de la connexion au serveur terminée ...",
+        "it": "Ripeti la connessione al server terminata ...",
+        "es": "Repita la conexión con el servidor terminada ...",
+        "pl": "Powtórne połączenie z serwerem zakończone ...",
+        "zh-cn": "重复服务器连接终止..."
+    },
+
+    "55": {
+        "en": "Repetier server service stopped ...",
+        "de": "Repetier-Server-Verbindung beendet ...",
+        "ru": "Сервис сервера повтора остановлен ...",
+        "pt": "Serviço de servidor de repetição parado ...",
+        "nl": "Herhaal server dienst gestopt ...",
+        "fr": "Le service de répétition du serveur s'est arrêté ...",
+        "it": "Ripetere il servizio del server fermato ...",
+        "es": "El servicio del servidor de repetición se ha detenido...",
+        "pl": "Usługa serwera powtórzeń zatrzymana ...",
+        "zh-cn": "重复服务器服务停止..."
+    },
+
+    "56": {
+        "en": "Start PrintJob",
+        "de": "PrintJob starten",
+        "ru": "Начать печать задания",
+        "pt": "Iniciar PrintJob",
+        "nl": "Start PrintJob",
+        "fr": "Démarrer PrintJob",
+        "it": "Avviare il lavoro di stampa",
+        "es": "Iniciar PrintJob",
+        "pl": "Start PrintJob",
+        "zh-cn": "开始打印工作"
+    },
+
+    "57": {
+        "en": "Printer update performed",
+        "de": "Printeraktualisierung durchgeführt",
+        "ru": "Обновление принтера выполнено",
+        "pt": "Actualização da impressora efectuada",
+        "nl": "Printer update uitgevoerd",
+        "fr": "Mise à jour de l'imprimante effectuée",
+        "it": "Aggiornamento della stampante eseguito",
+        "es": "Actualización de la impresora realizada",
+        "pl": "Przeprowadzono aktualizację drukarki",
+        "zh-cn": "打印机更新"
     }
 }

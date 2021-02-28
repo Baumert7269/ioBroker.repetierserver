@@ -1,12 +1,12 @@
 {
   "common": {
     "name": "repetierserver",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "news": {
-      "0.0.4": {
-        "en": "ioBroker Adapter for RepetierServer - Server for 3D-printer",
+      "0.0.5": {
+        "en": "ioBroker Adapter for RepetierServer - Server for 3D Printers",
         "de": "ioBroker Adapter für RepetierServer - Server für 3D-Drucker",
-        "ru": "ioBroker Adapter для RepetierServer - сервер для 3D-принтера",
+        "ru": "ioBroker Adapter для RepetierServer - Сервер для 3D-принтеров",
         "pt": "Adaptador ioBroker para RepetierServer - Servidor para impressora 3D",
         "nl": "ioBroker-adapter voor RepetierServer - Server voor 3D-printer",
         "fr": "ioBroker Adapter for RepetierServer - Serveur pour imprimante 3D",
@@ -111,7 +111,7 @@
         "type": "string",
         "read": true,
         "write": false,
-        "def": ""
+        "def": "?"
       },
       "native": {}
     },
@@ -124,7 +124,7 @@
         "type": "string",
         "read": true,
         "write": false,
-        "def": ""
+        "def": "?"
       },
       "native": {}
     }
