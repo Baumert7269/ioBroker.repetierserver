@@ -635,5 +635,44 @@
         "es": "Información del servidor",
         "pl": "Informacje o serwerze",
         "zh-cn": "服务器信息"
+    },
+
+    "51": {
+        "en": "Adapter version",
+        "de": "Adapterversion",
+        "ru": "Версия адаптера",
+        "pt": "Versão do adaptador",
+        "nl": "Adapter-versie",
+        "fr": "Version de l'adaptateur",
+        "it": "Versione adattatore",
+        "es": "Versión del adaptador",
+        "pl": "Wersja adaptera",
+        "zh-cn": "适配器版本"
+    },
+
+    "52": {
+        "en": "Activate printer",
+        "de": "Drucker aktivieren",
+        "ru": "Активировать принтер",
+        "pt": "Activar impressora",
+        "nl": "Activeer printer",
+        "fr": "Activer l'imprimante",
+        "it": "Attivare la stampante",
+        "es": "Activar la impresora",
+        "pl": "Aktywacja drukarki",
+        "zh-cn": "激活打印机"
+    },
+
+    "53": {
+        "en": "Manual G-code",
+        "de": "Manueller G-Code",
+        "ru": "ручной G-код",
+        "pt": "Código G Manual",
+        "nl": "Handmatig G-Code",
+        "fr": "Manuel G-Code",
+        "it": "Codice G manuale",
+        "es": "Código G manual",
+        "pl": "Instrukcja G-Code",
+        "zh-cn": "G-Code手册"
     }
 }

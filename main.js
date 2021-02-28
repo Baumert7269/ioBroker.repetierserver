@@ -12,7 +12,6 @@
 
 const utils = require('@iobroker/adapter-core');
 const request = require('request');
-//const fs = require('fs');
 
 // Adapterparameter
 let repetierIP = '' ;
@@ -479,6 +478,8 @@ class Template extends utils.Adapter {
                             // neue Sprache merken
                             langnr = state.val;
 
+
+
                             // neue Sprache über alle Printer verteilen
                             for (let p = 0; p < aprinter.length; p++) {
                                 //if (aprinter[p]["Printer"] == tprintername && amodelle[p]["intNr"] == state.val){
@@ -490,6 +491,8 @@ class Template extends utils.Adapter {
                             // Sprache bein Kanal Server und Info aktivieren
                             Sprachwechsel(this, state.val);
 
+                            // Druckerdatenpunkte umbenenne
+                            printerUpdate(this)
                             // Meldung ausgeben
                             PrinterMessage(this,alang[46][sprachen[langnr]]);
 
@@ -533,9 +536,6 @@ function main(tadapter)
     // Initialisierung
     // ===============
 
-    // Sprachauswahl init
-    //Language(tadapter, langnr);
-
     // PrinterUpdate Button
     PrinterUpdateButton(tadapter);
 
@@ -567,6 +567,7 @@ function main(tadapter)
 
     // Kanalsprache (Kanäle Server/Info)
     Sprachwechsel(tadapter, langnr)
+
 
     // 3D Model Management aktiviert
     // =============================
@@ -627,12 +628,10 @@ function printerUpdate(tadapter, refreshtime){
 
                             // Kanal anlegen/pflegen
                             PrinterKanaele(tadapter, fprintername)
-                            //printerdatenpfad = printerpath + 'Printer_' + fprintername;
-                            //SetKanal(tadapter, printerdatenpfad, 'Printer ' + fprintername);
 
                             // Drucker aktivieren
                             printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Aktivieren';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker aktivieren', 'boolean', true, true, '', 'button', false);
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', alang[52][sprachen[langnr]], 'boolean', true, true, '', 'button', false);
                 
                             // Drucker deaktivieren
                             printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Signale.Deaktivieren';
@@ -656,15 +655,15 @@ function printerUpdate(tadapter, refreshtime){
 
                             // Manueller G-Code Befehl
                             printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Befehl.G_Code';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Manueller G-Code', 'string', true, true, '', 'text.command', ''); 
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', alang[53][sprachen[langnr]], 'string', true, true, '', 'text.command', ''); 
 
                             // Materialfluss ändern (10% - 200%)
                             printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte.Materialfluss';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Materialfluss ändern', 'number', true, true, '%', 'value', 100); 
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Materialflusswert ändern', 'number', true, true, '%', 'value', 100); 
 
                             // Druckgeschwindigkeit ändern (10% - 300%)
                             printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte.Druckgeschwindigkeit';
-                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit ändern', 'number', true, true, '%', 'value', 100); 
+                            DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeitswert ändern', 'number', true, true, '%', 'value', 100); 
                 
                         }
                     }
@@ -1815,6 +1814,7 @@ function DatenAusgabe(tadapter, d_Pfad, d_Type, c_Name, c_Type, c_Read, c_Write,
     });
 
     tadapter.setState(d_Pfad, {val: d_Wert, ack: true});
+    tadapter.extendObject(d_Pfad, {common: {name: c_Name}});
 }    
 
 // Kanal anlegen
@@ -2063,6 +2063,12 @@ function info(tadapter, tserveronline){
 // info.activeprinter und info.activeprintjob
 function infoprinter(tadapter){
 
+    // info.Adapterversion
+    // *******************
+   
+    // Ausgeben
+        DatenAusgabe(tadapter,'info.Adapterversion', 'state', alang[51][sprachen[langnr]], 'string', true, false, '', 'text', tadapter.version);
+
     // info.activeprinter
     // ******************
     tadapter.getState('info.activeprinter', (err, state) => {
@@ -2076,15 +2082,21 @@ function infoprinter(tadapter){
                     aprint = aprint + aprinterAktiv[p]["Printer"] + '; ';
                 }
             }
-            // Sting anpassen
+            // String anpassen
             if (aprint.length > 2){
                 aprint = aprint.substring(0, aprint.length-2);
             }
 
-            // Sting anpassen
+            // String anpassen
             if (aprint.length == 0){
                 aprint = '-';
             }
+
+            // Ausgeben
+            if (state.val != aprint){
+                DatenAusgabe(tadapter,'info.activeprinter', 'state', alang[18][sprachen[langnr]], 'string', true, false, '', 'text', aprint)
+            }
+            
         }
     });
 
@@ -2124,6 +2136,7 @@ function Sprachwechsel(tadapter, snr) {
     tadapter.extendObject('info.activeprintjob',{common: {name: alang[19][sprachen[snr]]}});
     tadapter.extendObject('info.activeprinter',{common: {name: alang[18][sprachen[snr]]}});
     tadapter.extendObject('info.connection',{common: {name: alang[0][sprachen[snr]]}});
+    tadapter.extendObject('info.Adapterversion',{common: {name: alang[51][sprachen[snr]]}});
     tadapter.extendObject(printerpath + 'Nachricht',{common: {name: alang[40][sprachen[snr]]}});
     tadapter.extendObject(printerpath + 'Printer_update',{common: {name: alang[36][sprachen[snr]]}});
     tadapter.extendObject(printerpath + 'Server_update',{common: {name: alang[48][sprachen[snr]]}});
