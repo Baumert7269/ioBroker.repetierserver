@@ -941,8 +941,8 @@ function serverUpdate(tadapter, refreshtime){
 // **************************
 function refreshState(tadapter, refreshtime){
         
-     // Hilfsvariablen
-     let fprintername = '';
+    // Hilfsvariablen
+    let fprintername = '';
 
     // Durchlauf erst nach Printerauswertung
     if (printerauswertung == true){
