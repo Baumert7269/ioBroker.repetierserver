@@ -104,6 +104,26 @@ Some data points are only created when the 3D printer has been activated or the 
 
 ## Changelog
 
+### 0.0.6
+
+* (Baumert7269) Code for communication restructured
+* (Baumert7269) datapoint 'Druckgeschwindigkeit' 
+  - moved to Channal 'Istwerte' (Istwertanzeige)
+  - Setpoint can be changed to channel 'Steuern.Werte'
+  - a value adjustment in repetierserver is not converted into the datapoint 'Steuern.Werte.Druckgeschwindigkeit'
+    but will come 
+* (Baumert7269) datapoint 'Materialfluss' 
+  - moved to Channal 'Istwerte' (Istwertanzeige)
+  - Setpoint can be changed to channel 'Steuern.Werte'
+  - a value adjustment in repetierserver is not converted into the datapoint 'Steuern.Werte.Druckgeschwindigkeit'
+    but will come 
+* (Baumert7269) Message of actions in datapoint 'Nachricht' has been extended
+* (Baumert7269) Language switching has been disabled and is being rebuilt
+
+### 0.0.5
+
+* (Baumert7269) skipped
+
 ### 0.0.4
 
 * (Baumert7269) code for 'info.activeprinter' and 'info.activeprintjob' new designed
