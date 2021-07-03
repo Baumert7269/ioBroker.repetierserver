@@ -61,7 +61,7 @@
         "it": "IP ripetitore:",
         "es": "IP del repetidor:",
         "pl": "Repetier IP:",
-        "zh-cn": "中继IP:"
+        "zh-cn": "中继IP："
     },
 
     "5": {
@@ -74,7 +74,7 @@
         "it": "Nessun IP corretto specificato!",
         "es": "¡No se especificó la IP correcta!",
         "pl": "Nie podano poprawnego adresu IP!",
-        "zh-cn": "未指定正确的IP"
+        "zh-cn": "未指定正确的IP！"
     },
 
     "6": {
@@ -87,7 +87,7 @@
         "it": "Nessun ApiKey specificato!",
         "es": "¡No se ha especificado ApiKey!",
         "pl": "Nie określono ApiKey!",
-        "zh-cn": "未指定ApiKey"
+        "zh-cn": "未指定ApiKey！"
     },
 
     "7": {
@@ -100,7 +100,7 @@
         "it": "Repetier ApiKey:",
         "es": "Repetier ApiKey:",
         "pl": "Repetier ApiKey:",
-        "zh-cn": "Repetier ApiKey"
+        "zh-cn": "Repetier ApiKey："
     },
 
     "8": {
@@ -441,7 +441,6 @@
         "pl": "Wartości kontrolne",
         "zh-cn": "控制值"
     },
-    
     "36": {
         "en": "Update printer",
         "de": "Drucker aktualisieren",
@@ -467,7 +466,6 @@
         "pl": "Uruchom drukarkę (wymagany identyfikator!)",
         "zh-cn": "启动打印机（需要ID！）"
     },
-
     "38": {
         "en": "Read in new 3d-models",
         "de": "Lesen Sie neue 3D-Modelle ein",
@@ -480,7 +478,6 @@
         "pl": "Przeczytaj w nowych modelach 3d",
         "zh-cn": "阅读新的3D模型"
     },
-
     "39": {
         "en": "3D-Models (name, group)",
         "de": "3D-Modelle (Name, Gruppe)",
@@ -493,7 +490,6 @@
         "pl": "Modele 3D (nazwa, grupa)",
         "zh-cn": "3D模型（名称，组）"
     },
-
     "40": {
         "en": "Message",
         "de": "Meldung",
@@ -506,7 +502,6 @@
         "pl": "Wiadomość",
         "zh-cn": "信息"
     },
-
     "41": {
         "en": "Unknown G-code",
         "de": "Unbekannter G-Code",
@@ -519,7 +514,6 @@
         "pl": "Nieznany kod G.",
         "zh-cn": "未知的G码"
     },
-
     "42": {
         "en": "PrintJob starten",
         "de": "PrintJob starten",
@@ -532,7 +526,6 @@
         "pl": "PrintJob starten",
         "zh-cn": "PrintJob启动"
     },
-
     "43": {
         "en": "3D-Model",
         "de": "3D-Modell",
@@ -545,7 +538,6 @@
         "pl": "Model 3D",
         "zh-cn": "3D模型"
     },
-
     "44": {
         "en": "Printer update is performed",
         "de": "Druckeraktualisierung wird durchgeführt",
@@ -558,7 +550,6 @@
         "pl": "Aktualizacja drukarki jest wykonywana",
         "zh-cn": "打印机更新已执行"
     },
-
     "45": {
         "en": "was set at the printer",
         "de": "wurde markiert am Drucker",
@@ -571,7 +562,6 @@
         "pl": "został ustawiony w drukarce",
         "zh-cn": "设置在打印机上"
     },
-
     "46": {
         "en": "Changed language",
         "de": "Geänderte Sprache",
@@ -584,7 +574,6 @@
         "pl": "Zmieniono język",
         "zh-cn": "语言变更"
     },
-
     "47": {
         "en": "Update server data",
         "de": "Serverdaten aktualisieren",
@@ -597,7 +586,6 @@
         "pl": "Aktualizacja danych serwera",
         "zh-cn": "更新服务器数据"
     },
-
     "48": {
         "en": "Server update is performed",
         "de": "Serveraktualisierung wird durchgeführt",
@@ -609,122 +597,5 @@
         "es": "Actualización del servidor en curso",
         "pl": "Aktualizacja serwera w toku",
         "zh-cn": "服务器更新中"
-    },
-
-    "49": {
-        "en": "Information",
-        "de": "Information",
-        "ru": "Информация",
-        "pt": "Informação",
-        "nl": "Informatie",
-        "fr": "Informations",
-        "it": "Informazioni",
-        "es": "Información",
-        "pl": "Informacje",
-        "zh-cn": "资讯"
-    },
-
-    "50": {
-        "en": "Server information",
-        "de": "Serverinformationen",
-        "ru": "Информация о сервере",
-        "pt": "Informação do servidor",
-        "nl": "Server informatie",
-        "fr": "Informations sur le serveur",
-        "it": "Informazioni sul server",
-        "es": "Información del servidor",
-        "pl": "Informacje o serwerze",
-        "zh-cn": "服务器信息"
-    },
-
-    "51": {
-        "en": "Adapter version",
-        "de": "Adapterversion",
-        "ru": "Версия адаптера",
-        "pt": "Versão do adaptador",
-        "nl": "Adapter-versie",
-        "fr": "Version de l'adaptateur",
-        "it": "Versione adattatore",
-        "es": "Versión del adaptador",
-        "pl": "Wersja adaptera",
-        "zh-cn": "适配器版本"
-    },
-
-    "52": {
-        "en": "Activate printer",
-        "de": "Drucker aktivieren",
-        "ru": "Активировать принтер",
-        "pt": "Activar impressora",
-        "nl": "Activeer printer",
-        "fr": "Activer l'imprimante",
-        "it": "Attivare la stampante",
-        "es": "Activar la impresora",
-        "pl": "Aktywacja drukarki",
-        "zh-cn": "激活打印机"
-    },
-
-    "53": {
-        "en": "Manual G-code",
-        "de": "Manueller G-Code",
-        "ru": "ручной G-код",
-        "pt": "Código G Manual",
-        "nl": "Handmatig G-Code",
-        "fr": "Manuel G-Code",
-        "it": "Codice G manuale",
-        "es": "Código G manual",
-        "pl": "Instrukcja G-Code",
-        "zh-cn": "G-Code手册"
-    },
-
-    "54": {
-        "en": "Repetier server connection terminated ...",
-        "de": "Repetier-Server-Verbindung beendet ...",
-        "ru": "Повторное соединение с сервером прервано ...",
-        "pt": "Ligação de servidor de repetição terminada ...",
-        "nl": "Herhaalde serververbinding beëindigd ...",
-        "fr": "Répétition de la connexion au serveur terminée ...",
-        "it": "Ripeti la connessione al server terminata ...",
-        "es": "Repita la conexión con el servidor terminada ...",
-        "pl": "Powtórne połączenie z serwerem zakończone ...",
-        "zh-cn": "重复服务器连接终止..."
-    },
-
-    "55": {
-        "en": "Repetier server service stopped ...",
-        "de": "Repetier-Server-Verbindung beendet ...",
-        "ru": "Сервис сервера повтора остановлен ...",
-        "pt": "Serviço de servidor de repetição parado ...",
-        "nl": "Herhaal server dienst gestopt ...",
-        "fr": "Le service de répétition du serveur s'est arrêté ...",
-        "it": "Ripetere il servizio del server fermato ...",
-        "es": "El servicio del servidor de repetición se ha detenido...",
-        "pl": "Usługa serwera powtórzeń zatrzymana ...",
-        "zh-cn": "重复服务器服务停止..."
-    },
-
-    "56": {
-        "en": "Start PrintJob",
-        "de": "PrintJob starten",
-        "ru": "Начать печать задания",
-        "pt": "Iniciar PrintJob",
-        "nl": "Start PrintJob",
-        "fr": "Démarrer PrintJob",
-        "it": "Avviare il lavoro di stampa",
-        "es": "Iniciar PrintJob",
-        "pl": "Start PrintJob",
-        "zh-cn": "开始打印工作"
-    },
-
-    "57": {
-        "en": "Printer update performed",
-        "de": "Printeraktualisierung durchgeführt",
-        "ru": "Обновление принтера выполнено",
-        "pt": "Actualização da impressora efectuada",
-        "nl": "Printer update uitgevoerd",
-        "fr": "Mise à jour de l'imprimante effectuée",
-        "it": "Aggiornamento della stampante eseguito",
-        "es": "Actualización de la impresora realizada",
-        "pl": "Przeprowadzono aktualizację drukarki",
-        "zh-cn": "打印机更新"
     }
 }

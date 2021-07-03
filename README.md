@@ -104,24 +104,9 @@ Some data points are only created when the 3D printer has been activated or the 
 
 ## Changelog
 
-### 0.0.5
-
-* (Baumert7269) code for 'info.activeprinter' and 'info.activeprintjob' new designed
-  - fixed problem "Cannot read property 'val' of null" 
-
-* (Baumert7269) first preparations for complete language switching implemented
-  - Change language under datapoint '.info.Language'
-  - Language English, German, Russian, Portuguese, Dutch, French, Italian, Spanish, Polish and Chinese available
-  - Channel texts are already changed
-
-* new datapoint '.info.Adapterversion' implemented
-
-* some datapoint texts adapted
-
-* (Baumert7269) Code cleaned up and documented
-
 ### 0.0.4
 
+* (Baumert7269) code for 'info.activeprinter' and 'info.activeprintjob' new designed
 * (Baumert7269) new button 'server_update' for update the serverinformation manuell
 
 ### 0.0.3

@@ -1,40 +1,52 @@
 {
-  "name": "iobroker.repetierserver",
-  "version": "0.0.5",
-  "description": "ioBroker repetierserver Adapter",
+  "_from": "github:Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2",
+  "_id": "iobroker.repetierserver@0.0.4",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/iobroker.repetierserver",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2",
+    "rawSpec": "Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2",
+    "saveSpec": "github:Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2",
+    "fetchSpec": null,
+    "gitCommittish": "6176bc1a428a3794f35e7faf7cda1dc3433e55e2"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "github:Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2",
+  "_spec": "Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2",
+  "_where": "C:\\Program Files\\iobroker\\Testsystem2",
   "author": {
     "name": "Thomas Baumert",
     "email": "thomas.baumert@live.de"
   },
-  "homepage": "https://github.com/Baumert7269/ioBroker.repetierserver",
-  "license": "MIT",
-  "keywords": [
-    "iobroker",
-    "repetierserver",
-    "smart home",
-    "3d druck",
-    "3d printing"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Baumert7269/ioBroker.repetierserver"
+  "bugs": {
+    "url": "https://github.com/Baumert7269/ioBroker.repetierserver/issues"
   },
+  "bundleDependencies": false,
   "dependencies": {
     "@iobroker/adapter-core": "^2.2.1",
-    "replace": "^1.2.0",
-    "request": "^2.88.0"
+    "replace": "^1.1.5",
+    "request": "^2.88.0",
+    "tsc-watch": "^4.2.3"
   },
+  "deprecated": false,
+  "description": "ioBroker repetierserver Adapter",
   "devDependencies": {
     "@iobroker/testing": "^2.0.1",
     "@types/chai": "^4.2.8",
     "@types/chai-as-promised": "^7.1.2",
-    "@types/gulp": "^4.0.8",
+    "@types/gulp": "^4.0.6",
     "@types/mocha": "^7.0.1",
     "@types/node": "^10.17.14",
     "@types/proxyquire": "^1.3.28",
     "@types/sinon": "^7.5.1",
     "@types/sinon-chai": "^3.2.3",
-    "axios": "^0.21.1",
+    "axios": "^0.19.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "eslint": "^6.8.0",
@@ -44,18 +56,29 @@
     "sinon": "^8.1.1",
     "sinon-chai": "^3.4.0"
   },
+  "homepage": "https://github.com/Baumert7269/ioBroker.repetierserver",
+  "keywords": [
+    "iobroker",
+    "repetierserver",
+    "smart home",
+    "3d druck",
+    "3d printing"
+  ],
+  "license": "MIT",
   "main": "main.js",
+  "name": "iobroker.repetierserver",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Baumert7269/ioBroker.repetierserver.git"
+  },
   "scripts": {
+    "lint": "npm run lint:js",
+    "lint:js": "eslint",
+    "test": "npm run test:js && npm run test:package",
+    "test:integration": "mocha test/integration --exit",
     "test:js": "mocha --opts test/mocha.custom.opts",
     "test:package": "mocha test/package --exit",
-    "test:unit": "mocha test/unit --exit",
-    "test:integration": "mocha test/integration --exit",
-    "test": "npm run test:js && npm run test:package",
-    "lint": "npm run lint:js",
-    "lint:js": "eslint"
+    "test:unit": "mocha test/unit --exit"
   },
-  "bugs": {
-    "url": "https://github.com/Baumert7269/ioBroker.repetierserver/issues"
-  },
-  "readmeFilename": "README.md"
+  "version": "0.0.4"
 }

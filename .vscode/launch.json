@@ -5,13 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         
+        
         {
             "type": "node",
             "request": "launch",
             "name": "Programm starten",
-            "program": "C:/Program Files/iobroker/Testsystem1/node_modules/iobroker.repetierserver/main.js",
+            "program": "C:/Program Files/iobroker/Testsystem2/node_modules/iobroker.repetierserver/main.js",
             "cwd": "${workspaceFolder}",
-            "runtimeExecutable": "C:/Program Files/iobroker/Testsystem1/nodejs/node.exe",
+            "runtimeExecutable": "C:/Program Files/iobroker/Testsystem2/nodejs/node.exe",
             "args": [
                 "--inspect-brk", 
                 "--force",

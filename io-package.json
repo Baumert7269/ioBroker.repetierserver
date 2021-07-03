@@ -1,12 +1,12 @@
 {
   "common": {
     "name": "repetierserver",
-    "version": "0.0.5",
+    "version": "0.0.4",
     "news": {
-      "0.0.5": {
-        "en": "ioBroker Adapter for RepetierServer - Server for 3D Printers",
+      "0.0.4": {
+        "en": "ioBroker Adapter for RepetierServer - Server for 3D-printer",
         "de": "ioBroker Adapter für RepetierServer - Server für 3D-Drucker",
-        "ru": "ioBroker Adapter для RepetierServer - Сервер для 3D-принтеров",
+        "ru": "ioBroker Adapter для RepetierServer - сервер для 3D-принтера",
         "pt": "Adaptador ioBroker para RepetierServer - Servidor para impressora 3D",
         "nl": "ioBroker-adapter voor RepetierServer - Server voor 3D-printer",
         "fr": "ioBroker Adapter for RepetierServer - Serveur pour imprimante 3D",
@@ -71,7 +71,7 @@
         "js-controller": ">=1.4.2"
       }
     ],
-    "installedFrom": "https://github.com/Baumert7269/ioBroker.repetierserver/tarball/6176bc1a428a3794f35e7faf7cda1dc3433e55e2"
+    "installedFrom": "Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2"
   },
   "native": {
     "repPort": "3344",
@@ -111,7 +111,7 @@
         "type": "string",
         "read": true,
         "write": false,
-        "def": "?"
+        "def": ""
       },
       "native": {}
     },
@@ -124,7 +124,7 @@
         "type": "string",
         "read": true,
         "write": false,
-        "def": "?"
+        "def": ""
       },
       "native": {}
     }
