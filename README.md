@@ -119,6 +119,7 @@ Some data points are only created when the 3D printer has been activated or the 
     but will come 
 * (Baumert7269) Message of actions in datapoint 'Nachricht' has been extended
 * (Baumert7269) Language switching has been disabled and is being rebuilt
+* (Baumert7269) Adapterversion integrated as datapoint in chnnal 'info'
 
 ### 0.0.5
 
