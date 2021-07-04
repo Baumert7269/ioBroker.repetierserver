@@ -660,6 +660,10 @@ async function printerUpdate(tadapter, refreshtime){
                 printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Steuern.Werte.Druckgeschwindigkeit';
                 DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Druckgeschwindigkeit ändern (%)', 'number', true, true, '%', 'value'); 
 
+                // Statusmeldung 'Drucker druckt' vorbelegen
+                printerdatenpfad = printerpath + 'Printer_' + fprintername + '.Status.Drucker_druckt';
+                DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status');
+
                 // Datenpunkt AktiveprinterJob anlegen
                 DatenAusgabe(tadapter,'info.activeprintjob', 'state', "Drucker mit aktivem Druckauftrag", 'string', true, false, '', 'text', '---') //19
 
