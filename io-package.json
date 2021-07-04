@@ -110,7 +110,7 @@
         "type": "string",
         "read": true,
         "write": false,
-        "def": ""
+        "def": "---"
       },
       "native": {}
     },
@@ -120,6 +120,19 @@
       "common": {
         "role": "text",
         "name": "Printer with active printjob",
+        "type": "string",
+        "read": true,
+        "write": false,
+        "def": "---"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.Adapterversion",
+      "type": "state",
+      "common": {
+        "role": "text",
+        "name": "Adapterversion",
         "type": "string",
         "read": true,
         "write": false,
