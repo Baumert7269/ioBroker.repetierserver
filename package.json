@@ -1,6 +1,10 @@
 {
   "_from": "github:Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2",
+<<<<<<< HEAD
   "_id": "iobroker.repetierserver@0.0.6",
+=======
+  "_id": "iobroker.repetierserver@0.0.4",
+>>>>>>> V0.0.6
   "_inBundle": false,
   "_integrity": "",
   "_location": "/iobroker.repetierserver",
@@ -80,5 +84,9 @@
     "test:package": "mocha test/package --exit",
     "test:unit": "mocha test/unit --exit"
   },
+<<<<<<< HEAD
   "version": "0.0.6"
+=======
+  "version": "0.0.4"
+>>>>>>> V0.0.6
 }

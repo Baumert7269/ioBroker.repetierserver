@@ -34,7 +34,6 @@ let printerdatenpfad = '' ;
 let i = 0 ;
 let debug = false;
 
-
 // Sprachauswahl
 let sprachen = {0:'en', 1:'de', 2:'ru', 3:'pt', 4:'nl', 5:'fr', 6:'it', 7:'es', 8:'pl', 9:'zh-cn'};
 let langnr = 1;  // 1 = de
@@ -645,7 +644,6 @@ async function printerUpdate(tadapter, refreshtime){
 
                 // Datenpunkt Aktiveprinter anlegen
                 DatenAusgabe(tadapter,'info.Adapterversion', 'state', "Adapterversion", 'string', true, false, '', 'text', tadapter.version)  //18 
-
             }
         }
 
