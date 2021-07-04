@@ -9,6 +9,11 @@
 /*
 * Codeänderungen:
 *
+* Vorschau V0.0.7
+*
+* - alle Datenpunkte bei Adapterstart prüfen und ggf. anlegen
+* - Sprachumschaltung 
+* 
 * V0.0.6
 * - Umstellung von 'request' auf 'axios'
 * - Umstellung auf async/await bei Kommunikation
