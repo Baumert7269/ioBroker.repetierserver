@@ -70,8 +70,7 @@
       {
         "js-controller": ">=1.4.2"
       }
-    ],
-    "installedFrom": "Baumert7269/ioBroker.repetierserver#6176bc1a428a3794f35e7faf7cda1dc3433e55e2"
+    ]
   },
   "native": {
     "repPort": "3344",
