@@ -6,6 +6,8 @@
  *
  */
 
+// Adapterversion V0.0.6
+
 // ******************************
 // Definitionen und Vorbelegungen
 // ******************************
@@ -247,7 +249,7 @@ class Template extends utils.Adapter {
             if (tmp.length > 3) {
 
                 // Printername auswerten
-                if (tmp[3].search('rinter_') > 0 || tmp[3].search('pdate_Printer') > 0 || tmp[2] == 'info'){  // --> Printer ohne 'P', damit search > 0 sein kann    
+                if (tmp[3].search('rinter_') > 0 || tmp[3].search('_update') > 0 || tmp[2] == 'info'){  // --> Printer ohne 'P', damit search > 0 sein kann    
                     
                     // Printername aufbauen
                     tprintername = tmp[3].replace('Printer_', '');
@@ -445,9 +447,6 @@ class Template extends utils.Adapter {
                     // update_Server - Serverinformationen aktualisieren (V0.0.5)
                     case (id.search('Server_update') > 0 && state.val == true):
                         
-                        // Printerauswertung zurücksetzen
-                        printerauswertung = false;
-
                         // Meldung ausgeben
                         PrinterMessage(this, "Serveraktualisierung wird durchgeführt"); //48
 
@@ -503,6 +502,7 @@ function main(tadapter)
     // Logmeldung ausgeben 
     tadapter.subscribeStates('*');
     tadapter.log.debug('RepetierServer states subscribed');
+    tadapter.log.info("Adapterversion " + tadapter.version + " gestartet");   
     tadapter.log.info("Initialisierung wird durchgeführt ...");
 
     // Initialisierung
@@ -642,6 +642,9 @@ async function printerUpdate(tadapter, refreshtime){
 
                 // Datenpunkt Aktiveprinter anlegen
                 DatenAusgabe(tadapter,'info.activeprinter', 'state', "Namen der aktivierten Drucker", 'string', true, false, '', 'text', '---')  //18 
+
+                // Datenpunkt Aktiveprinter anlegen
+                DatenAusgabe(tadapter,'info.Adapterversion', 'state', "Adapterversion", 'string', true, false, '', 'text', tadapter.version)  //18 
 
             }
         }
@@ -1955,6 +1958,12 @@ function info(tadapter, tserveronline){
 
 // info.activeprinter und info.activeprintjob
 function infoprinter(tadapter){
+
+    // info.Adapterversion
+    // *******************
+   
+    // Ausgeben
+    DatenAusgabe(tadapter,'info.Adapterversion', 'state', "Adapterversion", 'string', true, false, '', 'text', tadapter.version);
 
     // info.activeprinter
     // ******************
