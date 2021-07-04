@@ -536,6 +536,9 @@ function main(tadapter)
     // Initialisierung
     // ===============
 
+    // Datenpunkte prüfen/anlegen
+    DatenpunkteAnlagen(tadapter)
+
     // Sprachauswahl init
     //Language(tadapter, langnr, 2500);
 
@@ -1723,9 +1726,10 @@ function PrinterMessage(tadapter, tMessage){
 }
 
 // Datenübergabe an ioBroker 
-function DatenAusgabe(tadapter, d_Pfad, d_Type, c_Name, c_Type, c_Read, c_Write, c_Unit, c_Role, d_Wert){
+async function DatenAusgabe(tadapter, d_Pfad, d_Type, c_Name, c_Type, c_Read, c_Write, c_Unit, c_Role, d_Wert){
+    let result;
 
-    tadapter.setObjectNotExists(d_Pfad,{
+    result = await tadapter.setObjectNotExists(d_Pfad,{
         type: d_Type,
         common:
         {
@@ -1741,7 +1745,7 @@ function DatenAusgabe(tadapter, d_Pfad, d_Type, c_Name, c_Type, c_Read, c_Write,
 
     pause (50);
 
-    tadapter.setState(d_Pfad, {val: d_Wert, ack: true});
+    result = await tadapter.setState(d_Pfad, {val: d_Wert, ack: true});
 }    
 
 // Kanal anlegen
@@ -1757,6 +1761,11 @@ function SetKanal(tadapter, d_Pfad, c_Name){
     });
 
     tadapter.extendObject(d_Pfad, {common: {name: c_Name}});
+
+}
+
+// Datenpunkte anlegen
+function DatenpunkteAnlagen (tadapter){
 
 }
 
