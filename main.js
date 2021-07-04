@@ -6,7 +6,31 @@
  *
  */
 
-// Adapterversion V0.0.6
+/*
+* Codeänderungen:
+*
+* V0.0.6
+* - Umstellung von 'request' auf 'axios'
+* - Umstellung auf async/await bei Kommunikatio
+* - einie Datenpunkte umstrukturiert
+*
+* V0.0.5
+* - Versuch Sprachumschaltung (wird verschoben)
+*
+* V0.0.4
+* - Datenpunkte 'info.activeprinter' und 'info.activeprintjob' implementiert
+* - Datenpunkt 'letzte Nachrichten' implementier
+*
+* V0.0.3
+* - Problem "Cannot read property 'val' of null" behoben 
+*
+* V0.0.2
+* - 3D-Model-Management implenemtiert
+* - Errorcodes implementiert
+*
+* V0.0.1
+* - Erstauslieferung
+*/
 
 // ******************************
 // Definitionen und Vorbelegungen
@@ -331,10 +355,10 @@ class Template extends utils.Adapter {
                         response = await axios.get('http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=setFlowMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi);
 
                         if (response.status == 200){
-                            PrinterMessage(this, "neue Materialflusswert übergeben"); // 44
+                            PrinterMessage(this, "Materialflusswert übergeben"); // 44
                         }
                         else{
-                            PrinterMessage(this, "neue Materialflusswert wurde nicht übernommen"); // 44 
+                            PrinterMessage(this, "Materialflusswert wurde nicht übernommen"); // 44 
                         }
                         break;
 
@@ -343,10 +367,10 @@ class Template extends utils.Adapter {
                         response = await axios.get('http://' + repetierIP + ':' + repetierPort + '/printer/api/' + tprintername + '?a=setSpeedMultiply&data={"speed":"'+ state.val + '"}&apikey=' + repetierApi);
                         
                         if (response.status == 200){
-                            PrinterMessage(this, "neue Druckgeschwindigkeit übergeben"); // 44
+                            PrinterMessage(this, "Druckgeschwindigkeit übergeben"); // 44
                         }
                         else{
-                            PrinterMessage(this, "neue Druckgeschwindigkeit wurde nicht übernommen"); // 44 
+                            PrinterMessage(this, "Druckgeschwindigkeit wurde nicht übernommen"); // 44 
                         }
 
                         break;
@@ -436,7 +460,7 @@ class Template extends utils.Adapter {
                         PrinterMessage(this, "Druckeraktualisierung wird durchgeführt"); // 44
 
                         // Printerupdate durchführen
-                        printerUpdate(this, 2000);
+                        printerUpdate(this, 120000);
 
                         // state zurücksetzen
                         this.setState(id, {val: false, ack: true});
@@ -450,7 +474,7 @@ class Template extends utils.Adapter {
                         PrinterMessage(this, "Serveraktualisierung wird durchgeführt"); //48
 
                         // Printerupdate durchführen
-                        serverUpdate(this, 2000);
+                        serverUpdate(this, 86400000);
 
                         // state zurücksetzen
                         this.setState(id, {val: false, ack: true});
@@ -1410,7 +1434,7 @@ async function PrinterStart(tadapter, fprintername, refreshtime){
         
         if (response.status != 200){
             // Fehler
-            PrinterMessage(tadapter, fprintername + ' -> Druck wurde nicht gestartet - Error: ' + error);
+            PrinterMessage(tadapter, fprintername + ' -> Druck wurde nicht gestartet...');
         }   
         else{
             // Kein Fehler

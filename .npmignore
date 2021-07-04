@@ -17,6 +17,8 @@ appveyor.yaml
 .eslintrc.json
 .eslintrc.js
 
+iob_npm.done
+
 # npm package files
 iobroker.*.tgz
 package-lock.json
