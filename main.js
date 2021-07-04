@@ -11,7 +11,7 @@
 *
 * V0.0.6
 * - Umstellung von 'request' auf 'axios'
-* - Umstellung auf async/await bei Kommunikatio
+* - Umstellung auf async/await bei Kommunikation
 * - einie Datenpunkte umstrukturiert
 *
 * V0.0.5
