@@ -15,7 +15,7 @@
 * - einie Datenpunkte umstrukturiert
 *
 * V0.0.5
-* - Versuch Sprachumschaltung (wird verschoben)
+* - Implementierung Sprachumschaltung (wird verschoben)
 *
 * V0.0.4
 * - Datenpunkte 'info.activeprinter' und 'info.activeprintjob' implementiert
