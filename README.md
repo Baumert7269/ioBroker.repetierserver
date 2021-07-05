@@ -103,6 +103,10 @@ Some data points are only created when the 3D printer has been activated or the 
 
 ## Changelog
 
+### 0.0.7
+
+* (Baumert7269) xxxxx
+
 ### 0.0.6
 
 * (Baumert7269) Code for communication restructured
