@@ -31,7 +31,6 @@
   "dependencies": {
     "@iobroker/adapter-core": "^2.2.1",
     "replace": "^1.1.5",
-    "axios":"^0.21.1"
   },
   "deprecated": false,
   "description": "ioBroker repetierserver Adapter",
