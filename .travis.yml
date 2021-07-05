@@ -16,7 +16,6 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-6
-
 before_install:
   - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then CC=gcc-6; fi'
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then CC=g++-6; fi'
