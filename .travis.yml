@@ -9,7 +9,7 @@ node_js:
   - '14'
   - '16'
 env:
-  - CXX=g++-4.8
+  - CXX=g++-6
 addons:
   apt:
     sources:
@@ -24,6 +24,6 @@ before_script:
   - 'if [[ $NPMVERSION == 5 ]]; then npm install -g npm; fi'
   - npm -v
 script:
-  - 'npm run test:package'
-  - 'npm run test:unit'
-  - 'npm run test:integration'
+  - npm run test:package
+  - npm run test:unit
+  - npm run test:integration
