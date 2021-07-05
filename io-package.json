@@ -16,6 +16,7 @@
         "zh-cn": "用于RepetierServer的ioBroker适配器-用于3D打印机的服务器"
       }
     },
+    
     "title": "RepetierServer2",
     "titleLang": {
       "en": "RepetierServer2",
