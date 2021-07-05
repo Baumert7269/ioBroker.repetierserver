@@ -2,6 +2,7 @@
 # ioBroker.repetierserver
 [![NPM version](http://img.shields.io/npm/v/iobroker.repetierserver.svg)](https://www.npmjs.com/package/iobroker.repetierserver)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.repetierserver.svg)](https://www.npmjs.com/package/iobroker.repetierserver)
+[![Build Status](https://www.travis-ci.org/Baumert7269/ioBroker.repetierserver.svg?branch=master)](https://www.travis-ci.org/Baumert7269/ioBroker.repetierserver)
 ![GitHub](https://img.shields.io/github/license/Baumert7269/ioBroker.repetierserver)
 [![stable](http://iobroker.live/badges/repetierserver.svg)](http://iobroker.live/badges/repetierserver.svg)
 [![installed](http://iobroker.live/badges/repetierserver.svg)](http://iobroker.live/badges/repetierserver.svg)
