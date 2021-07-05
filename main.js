@@ -9,10 +9,9 @@
 /*
 * Codeänderungen:
 *
-* Vorschau V0.0.7
+* V0.0.7
 *
-* - alle Datenpunkte bei Adapterstart prüfen und ggf. anlegen
-* - Sprachumschaltung 
+* - bugfixing
 * 
 * V0.0.6
 * - Umstellung von 'request' auf 'axios'
