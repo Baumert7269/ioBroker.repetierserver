@@ -1718,6 +1718,7 @@ function PrinterModelButtons(tadapter, InitDel, refreshtime){
     }
 }
 
+
 // Updatebutton anlegen und initialisieren
 function PrinterMessage(tadapter, tMessage){
 
