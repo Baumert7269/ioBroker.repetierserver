@@ -30,16 +30,16 @@
       "zh-cn": "RepetierServer2"
     },
     "desc": {
-      "en": "Adapter for the integration of the Repeat-Server into the ioBroker",
-      "de": "Adapter zur Integration des Repeat-Servers in den ioBroker",
-      "ru": "Адаптер для интеграции Repeat-Server в ioBroker",
-      "pt": "Adaptador para integração do Repeat-Server no ioBroker",
-      "nl": "Adapter voor de integratie van de Repeat-Server in de ioBroker",
-      "fr": "Adaptateur pour l'intégration du Repeat-Server dans l'ioBroker",
-      "it": "Adattatore per l'integrazione di Repeat-Server in ioBroker",
-      "es": "Adaptador para la integración de Repeat-Server en ioBroker",
-      "pl": "Adapter do integracji Repeat-Server z ioBroker",
-      "zh-cn": "用于将Repeat-Server集成到ioBroker中的适配器"
+      "en": "Adapter for the integration of the RepetierServer into the ioBroker",
+      "de": "Adapter zur Integration des RepetierServers in den ioBroker",
+      "ru": "Адаптер для интеграции RepetierServer в ioBroker",
+      "pt": "Adaptador para integração do RepetierServer no ioBroker",
+      "nl": "Adapter voor de integratie van de RepetierServer in de ioBroker",
+      "fr": "Adaptateur pour l'intégration du RepetierServer dans l'ioBroker",
+      "it": "Adattatore per l'integrazione di RepetierServer in ioBroker",
+      "es": "Adaptador para la integración de RepetierServer en ioBroker",
+      "pl": "Adapter do integracji RepetierServer z ioBroker",
+      "zh-cn": "用于将Repetiert-Server集成到ioBroker中的适配器"
     },
     "authors": [
       "Baumert7269 <thomas.baumert@live.de>"
