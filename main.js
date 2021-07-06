@@ -79,7 +79,6 @@ let tou7 ;
 let tou8 ;
 let tou9 ;
 let tou10 ;
-let tou11 ;
 
 // Statusvariablen für schnelle Reaktionen
 const aprinterAktiv = new Array;  // (Printer, aktiv)
@@ -128,7 +127,7 @@ class Template extends utils.Adapter {
     
 	    // Meldung ausgeben
 	    //this.log.info(alang[0][sprachen[langnr]]);
-        this.log.info("Repetierserver verbunden")
+        this.log.info("Repetierserver verbunden");
         
         // *******************
         // Adapterwerte prüfen
@@ -404,7 +403,7 @@ class Template extends utils.Adapter {
 
                                 // Modelname in Beschreibung des Startbuttons schreiben
                                 printerdatenpfad = printerpath + 'Printer_' + tprintername + '.Steuern.Signale.Start';
-                                let objName = "PrintJob starten" + ' (' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ')' //42
+                                let objName = "PrintJob starten" + ' (' + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ')'; //42
                                 this.setObjectNotExists(printerdatenpfad,{
                                     type: 'state',
                                     common:
@@ -424,7 +423,7 @@ class Template extends utils.Adapter {
                                 PrinterMessage(this, "3D-Modell" + amodelle[p]["Gruppe"] + '/' + amodelle[p]["Name"] + ' ' + "3D-Modell" + ' >' + tprintername + '<'); //43
 
                                 // aktive ModelID setzen
-                                SetModelIDPrinter(tprintername, amodelle[p]['ID'])
+                                SetModelIDPrinter(tprintername, amodelle[p]['ID']);
 
                                 break;
                             }
@@ -536,7 +535,7 @@ function main(tadapter)
     // ===============
 
     // Datenpunkte prüfen/anlegen
-    DatenpunkteAnlagen(tadapter)
+    DatenpunkteAnlagen(tadapter);
 
     // Sprachauswahl init
     //Language(tadapter, langnr, 2500);
@@ -672,13 +671,13 @@ async function printerUpdate(tadapter, refreshtime){
                 DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Drucker druckt', 'boolean', true, false, '', 'info.status');
 
                 // Datenpunkt AktiveprinterJob anlegen
-                DatenAusgabe(tadapter,'info.activeprintjob', 'state', "Drucker mit aktivem Druckauftrag", 'string', true, false, '', 'text', '---') //19
+                DatenAusgabe(tadapter,'info.activeprintjob', 'state', "Drucker mit aktivem Druckauftrag", 'string', true, false, '', 'text', '---'); //19
 
                 // Datenpunkt Aktiveprinter anlegen
-                DatenAusgabe(tadapter,'info.activeprinter', 'state', "Namen der aktivierten Drucker", 'string', true, false, '', 'text', '---')  //18 
+                DatenAusgabe(tadapter,'info.activeprinter', 'state', "Namen der aktivierten Drucker", 'string', true, false, '', 'text', '---');  //18 
 
                 // Datenpunkt Aktiveprinter anlegen
-                DatenAusgabe(tadapter,'info.Adapterversion', 'state', "Adapterversion", 'string', true, false, '', 'text', tadapter.version)  //18 
+                DatenAusgabe(tadapter,'info.Adapterversion', 'state', "Adapterversion", 'string', true, false, '', 'text', tadapter.version);  //18 
             }
         }
 
@@ -1375,7 +1374,7 @@ async function refreshModel(tadapter, fprintername){
             if (response.status == 200){
         
                 // Modelanzahl ermitteln
-                tanz = content.data.length
+                tanz = content.data.length;
 
                 if (tanz > 0){
     
@@ -1420,7 +1419,7 @@ async function refreshModel(tadapter, fprintername){
                     });
                     tadapter.extendObject(printerdatenpfad,{common: {states: printerwert}});
                     tadapter.setState(printerdatenpfad, {val: 0, ack: true});
-                    PrinterMessage(tadapter, fprintername + " -> Modelupdate durchgeführt")
+                    PrinterMessage(tadapter, fprintername + " -> Modelupdate durchgeführt");
                 }
             }
         }
@@ -1441,7 +1440,6 @@ async function PrinterStart(tadapter, fprintername, refreshtime){
 
         // Startbefehl senden
         let response = await axios.get('http://' + repetierIP + ':' + repetierPort + '/printer/api/' + fprintername + '?a=copyModel&data={"id":"'+ aktdruckid + '"}&apikey=' + repetierApi);
-        let content = response.data;
         
         if (response.status != 200){
             // Fehler
