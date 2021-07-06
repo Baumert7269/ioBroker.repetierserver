@@ -2,7 +2,6 @@
 # ioBroker.repetierserver
 [![NPM version](http://img.shields.io/npm/v/iobroker.repetierserver.svg)](https://www.npmjs.com/package/iobroker.repetierserver)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.repetierserver.svg)](https://www.npmjs.com/package/iobroker.repetierserver)
-[![Build Status](https://www.travis-ci.org/Baumert7269/ioBroker.repetierserver.svg?branch=master)](https://www.travis-ci.org/Baumert7269/ioBroker.repetierserver)
 ![GitHub](https://img.shields.io/github/license/Baumert7269/ioBroker.repetierserver)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/Baumert7269/ioBroker.repetierserver.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Baumert7269/ioBroker.repetierserver/alerts/)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Baumert7269/ioBroker.repetierserver.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Baumert7269/ioBroker.repetierserver/context:javascript)
