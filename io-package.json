@@ -1,9 +1,9 @@
 {
   "common": {
     "name": "repetierserver",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "news": {
-      "0.0.7": {
+      "0.0.8": {
         "en": "ioBroker Adapter for RepetierServer - Server for 3D-printer",
         "de": "ioBroker Adapter für RepetierServer - Server für 3D-Drucker",
         "ru": "ioBroker Adapter для RepetierServer - сервер для 3D-принтера",
