@@ -390,7 +390,7 @@ class Template extends utils.Adapter {
                     case (id.search('PrintModel.Update') > 0 && state.val == true):
                         
                         // Modelle neu einlesen
-                        refreshModel(this, tprintername, 2000);
+                        refreshModel(this, tprintername);
 
                         break;
 
