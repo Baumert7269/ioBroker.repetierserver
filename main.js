@@ -9,14 +9,14 @@
 /*
 * Codeänderungen:
 *
-* V0.0.7
+* V0.0.7/V0.0.8
 *
 * - bugfixing
 * 
 * V0.0.6
 * - Umstellung von 'request' auf 'axios'
 * - Umstellung auf async/await bei Kommunikation
-* - einie Datenpunkte umstrukturiert
+* - einige Datenpunkte umstrukturiert
 *
 * V0.0.5
 * - Implementierung Sprachumschaltung (wird verschoben)
@@ -42,7 +42,7 @@
 
 const utils = require('@iobroker/adapter-core');
 const axios = require('axios');
-//const fs = require('fs');
+const fs = require('fs');
 
 // Adapterparameter
 let repetierIP = '' ;
@@ -60,13 +60,22 @@ let printerdatenpfad = '' ;
 
 // Allgemeine Hilfsvariablen
 let i = 0 ;
-let debug = false;
+let debug = true;
 
-// Sprachauswahl
-let sprachen = {0:'en', 1:'de', 2:'ru', 3:'pt', 4:'nl', 5:'fr', 6:'it', 7:'es', 8:'pl', 9:'zh-cn'};
-let langnr = 1;  // 1 = de
-let alang ;      // Array für Text
-let sprachwechselaktiv = false; // Variable vorbelegen
+//// Sprachauswahl
+//let sprachen = {0:'en', 1:'de', 2:'ru', 3:'pt', 4:'nl', 5:'fr', 6:'it', 7:'es', 8:'pl', 9:'zh-cn'};
+//let langnr = 1;  // 1 = de
+//let sprachwechselaktiv = false; // Variable vorbelegen
+//let tdata ; // Sprachdaten
+
+// Sprachen einlesen
+//try{
+//    tdata = fs.readFileSync('languages.json', 'utf8');
+//}
+//catch (err){
+//    tdata = fs.readFileSync('C:/Program Files/iobroker/Testsystem2/node_modules/iobroker.repetierserver/languages.json', 'utf8');
+//}
+//const alang = JSON.parse(tdata);
 
 // Variablen für TimeOut-IDs
 let tou1 ;
@@ -486,12 +495,30 @@ class Template extends utils.Adapter {
 
                     // Sprache wechseln
                     case (id.search('Language') > 0 && (state.val >= 0) && (state.val <=9) && sprachwechselaktiv == false):
-
+                        
+                        //let result;
                         // Sprache wechseln
-                        Language(this, state.val, 2500);
+                        //result = await Language(this, state.val, 2500);
+
+                        // neue Sprache merken
+                        //langnr = state.val;
+
+                        // neue Sprache über alle Printer verteilen
+                        //for (let p = 0; p < aprinter.length; p++) {
+                        //    //if (aprinter[p]["Printer"] == tprintername && amodelle[p]["intNr"] == state.val){
+                        //    
+                        //    result = await PrinterKanaele(this, aprinter[p])
+                        //    //}
+                        //}
+
+                        // Sprache bein Kanal Server und Info aktivieren
+                        //result = await Sprachwechsel(this, state.val);
+
+                        // Druckerdatenpunkte umbenennen
+                        //result = await printerUpdate(this,20000)
 
                         // Meldung ausgeben
-                        //(this, "Geänderte Sprache"); //46
+                        //result = await PrinterMessage(this,alang[46][sprachen[langnr]]);
 
                         // bei allen Kanälen die Sprache wechseln
                         
@@ -1476,44 +1503,20 @@ async function PrinterStart(tadapter, fprintername, refreshtime){
 // *********************
 
 // Spracheauswahl anlegen und Sparchen einlesen
-function Language(tadapter, tlangnr, refreshtime){
+async function Language(tadapter, tlangnr, refreshtime){
 
     // Sprachwechsel noch aktiv (true)
     if (sprachwechselaktiv == false){
 
         // Sprachwechselmerker setzen
         sprachwechselaktiv = true;
-
-        // Sprachen einlesen
-        if (debug == false){
-            let tdata = fs.readFileSync('languages.json', 'utf8');
-        }
-        else {
-            let tdata = fs.readFileSync('C:/Program Files/iobroker/Testsystem1/node_modules/iobroker.repetierserver/languages.json', 'utf8');
-        }
-        alang = JSON.parse(tdata);
     
         // Sprachauswahl anlegen
         printerdatenpfad = 'info.Language';
-        tadapter.setObjectNotExists(printerdatenpfad,{
-            type: 'state',
-            common:
-            {
-                name:   "Sprachauswahl", // 3
-                type:   'number',
-                read:   true,
-                write:  true,
-                role:   'value.language',
-                states: sprachen,
-                def:    0,
-                min:    0,
-                max:    10
-            },
-            native: {}
-        });
+        DatenAusgabe(tadapter, printerdatenpfad, 'state', 'Sprachauswahl', 'number', true, true, '', 'value.language', sprachen);
         tadapter.extendObject(printerdatenpfad,{common: {states: sprachen, name: alang[3][sprachen[tlangnr]]}});
         tadapter.setState(printerdatenpfad, {val: tlangnr, ack: true});
-
+        
         // Sprachwechselmerker durch
         sprachwechselaktiv = false;
 
@@ -2055,4 +2058,57 @@ function pause(numberMillis) {
         if (now.getTime() > exitTime) 
             return; 
     } 
+}
+
+// Sprache der Kanäle Server und Info aktualisieren
+// ************************************************
+function Sprachwechsel(tadapter, snr) {
+    tadapter.extendObject('info.activeprintjob',{common: {name: alang[19][sprachen[snr]]}});
+    tadapter.extendObject('info.activeprinter',{common: {name: alang[18][sprachen[snr]]}});
+    tadapter.extendObject('info.connection',{common: {name: alang[0][sprachen[snr]]}});
+    tadapter.extendObject('info.Adapterversion',{common: {name: alang[51][sprachen[snr]]}});
+    tadapter.extendObject(printerpath + 'Nachricht',{common: {name: alang[40][sprachen[snr]]}});
+    tadapter.extendObject(printerpath + 'Printer_update',{common: {name: alang[36][sprachen[snr]]}});
+    tadapter.extendObject(printerpath + 'Server_update',{common: {name: alang[48][sprachen[snr]]}});
+}
+
+// Sprache bei Adapterstart prüfen und ggf. initialisieren
+// *******************************************************
+function Sprachpruefung(tadapter) {
+
+    // Einlesen und prüfen
+    tadapter.getState('info.Language', (err, state) => {
+        if (!state.val){
+            state.val = '1';
+        }  
+        
+        // Sprachnummer übergeben
+        langnr = state.val;
+
+        // Plausibilitätsprüfung
+        if (langnr < 0 || langnr > 9){
+            langnr = 1;
+        }
+
+        // Ausgeben
+        printerdatenpfad = 'info.Language';
+        tadapter.setObjectNotExists(printerdatenpfad,{
+            type: 'state',
+            common:
+            {
+                name:   alang[3][sprachen[langnr]],
+                type:   'number',
+                read:   true,
+                write:  true,
+                role:   'value.language',
+                states: sprachen,
+                def:    0,
+                min:    0,
+                max:    10
+            },
+            native: {}
+        });
+        tadapter.extendObject(printerdatenpfad,{common: {states: sprachen, name: alang[3][sprachen[langnr]]}});
+        tadapter.setState(printerdatenpfad, {val: langnr, ack: true});
+    });
 }
